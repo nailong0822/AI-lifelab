@@ -1,0 +1,18 @@
+# Local environment variables
+.env
+.env.*
+!.env.example
+
+# Python environment and bytecode
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local IDE settings
+.idea/
+
+# Application data and frontend build
+.data/
+frontend/node_modules/
+frontend/dist/
+*.tsbuildinfo
