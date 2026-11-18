@@ -7,6 +7,7 @@ import {
   Menu, MessageSquare, Plus, Search, SlidersHorizontal, Sparkles, Square, WifiOff, X,
 } from 'lucide-react'
 import { api } from './api'
+import PathsPage, { PathEntry } from './PathsPage'
 import { Button } from './components/ui/button'
 import type { Case, Health, Run, RunSummary, TraceEvent } from './types'
 
@@ -182,7 +183,7 @@ function CaseCard({ item, onEvidence }: { item: Case; onEvidence: (item: Case) =
         <span>{item.matching.tier_label}</span><span>评分字段覆盖 {item.matching.field_coverage}%</span></>
         : <span>历史案例 · 未评分</span>}
     </div>
-    {item.background_match && <div className={'case-match match-' + item.background_match}>
+    {!item.matching && item.background_match && <div className={'case-match match-' + item.background_match}>
       {{ close: '背景接近', partial: '部分背景相近', distant: '背景差异较大', unknown: '背景信息不足' }[item.background_match]}
     </div>}
     {(item.matching ? ['major', 'education', 'target', 'plans', 'actions', 'stage_outcomes'] : ['person_context', 'actions', 'stage_outcomes']).map(field =>
@@ -192,7 +193,7 @@ function CaseCard({ item, onEvidence }: { item: Case; onEvidence: (item: Case) =
     <p className="evidence-availability">{Object.keys(item.facts).map(field => factLabels[field] || field).join('、')}有引用</p>
     {item.matching && <details className="match-details"><summary>查看评分依据</summary>
       {item.matching.dimensions.map(dimension => <div className="match-dimension" key={dimension.dimension}>
-        <strong>{dimension.label}<span>{dimension.weight ? `权重 ${dimension.weight.toFixed(1)}% · ${dimension.level === null ? '信息未知' : dimension.level * 100 + '% 匹配'} · 得分 ${dimension.contribution.toFixed(1)}` : '本次未启用'}</span></strong>
+        <strong>{dimension.label}<span>{dimension.weight ? `权重 ${dimension.weight.toFixed(1)}% · ${dimension.level === null ? '信息未知' : dimension.level * 100 + '% 匹配'} · 得分 ${dimension.contribution.toFixed(2)}` : '本次未启用'}</span></strong>
         <p>{dimension.reason}</p>
       </div>)}
     </details>}
@@ -241,7 +242,7 @@ function EvidenceDrawer({ item, run, close }: { item: Case; run: Run; close: () 
       {item.matching && <section className="score-evidence"><h3>匹配评分与引用</h3>
         <p className="muted">总匹配分 {item.matching.score}，评分字段覆盖 {item.matching.field_coverage}%。</p>
         {item.matching.dimensions.filter(dimension => dimension.weight > 0).map(dimension => <div className="match-dimension" key={dimension.dimension}>
-          <strong>{dimension.label} · {dimension.level === null ? '未知' : dimension.level * 100 + '% 匹配'} · 得分 {dimension.contribution.toFixed(1)}</strong>
+          <strong>{dimension.label} · {dimension.level === null ? '未知' : dimension.level * 100 + '% 匹配'} · 得分 {dimension.contribution.toFixed(2)}</strong>
           <p>你的信息 · {dimension.user_facts.map(fact => fact.value).join('、')}</p><p>{dimension.reason}</p>
           {dimension.evidence_fields.map(field => item.facts[field] && <blockquote key={field}>{item.facts[field].quote}</blockquote>)}
         </div>)}
@@ -295,7 +296,7 @@ function TraceDetails({ event, run }: { event: TraceEvent; run: Run }) {
     {event.event_type === 'coverage.sufficient' && <p>已跳过后续 {String(event.payload.skipped_queries)} 次补查。</p>}
     {event.event_type === 'cases.ranked' && (event.payload.cases as Case[] | undefined)?.map(item => <details key={item.id}>
       <summary>{item.title} · {item.matching?.score} 分</summary>
-      {item.matching?.dimensions.filter(dimension => dimension.weight > 0).map(dimension => <p key={dimension.dimension}>{dimension.label} · {dimension.contribution.toFixed(1)} 分 · {dimension.reason}</p>)}
+      {item.matching?.dimensions.filter(dimension => dimension.weight > 0).map(dimension => <p key={dimension.dimension}>{dimension.label} · {dimension.contribution.toFixed(2)} 分 · {dimension.reason}</p>)}
     </details>)}
     {event.event_type === 'node.completed' && event.payload.duration_ms !== undefined && <p>本步骤耗时 {(Number(event.payload.duration_ms) / 1000).toFixed(1)} 秒</p>}
     {event.event_type === 'report.ready' && run.stop_reason && <p>{reasonLabels[run.stop_reason]}</p>}
@@ -391,6 +392,7 @@ function RunPage() {
           {!settled && <button onClick={() => cancel.mutate()} disabled={cancel.isPending}><Square size={12} />停止检索</button>}</div>
         {cancel.error && <p className="inline-error" role="alert">{cancel.error.message}</p>}
         <ProfileView run={run} />
+        {settled && run.profile && <PathEntry runId={run.id} />}
         {run.status === 'awaiting_input' && <Clarification key={run.clarification!.id} run={run} />}
         {run.error && <div className="error-banner" role="alert"><CircleAlert size={18} /><span>{run.error}</span></div>}
         {run.report && <section className="report-summary">
@@ -438,6 +440,7 @@ export default function App() {
   const location = useLocation()
   const history = useQuery({ queryKey: ['history'], queryFn: api.list, refetchInterval: 5000 })
   const health = useQuery({ queryKey: ['health'], queryFn: api.health, refetchInterval: 5000 })
+  if (location.pathname.startsWith('/explore/')) return <Routes><Route path="/explore/:runId" element={<PathsPage />} /></Routes>
   return <div className="app-shell">
     {menuOpen && <button className="mobile-overlay" aria-label="关闭导航" onClick={() => setMenuOpen(false)} />}
     <div className={menuOpen ? 'sidebar-wrap open' : 'sidebar-wrap'}><Sidebar history={history.data || []} close={() => setMenuOpen(false)} /></div>

@@ -95,7 +95,7 @@ class DimensionAssessment(Contract):
     dimension: Literal["major", "education", "target", "plans", "starting_point", "constraints"]
     level: Literal[0, 0.25, 0.5, 0.75, 1] | None
     reason: str = Field(max_length=180)
-    evidence_fields: list[Literal["major", "education", "year", "career_stage", "target", "plans", "starting_point", "constraints", "actions", "time_and_cost"]] = Field(default_factory=list, max_length=4)
+    evidence_fields: list[str] = Field(default_factory=list, max_length=13)
 
 
 class ExperienceJudgment(Contract):

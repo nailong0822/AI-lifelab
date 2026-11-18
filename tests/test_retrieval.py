@@ -11,7 +11,7 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from backend.app import create_app
 from backend.config import ROOT, Settings
-from backend.models import Profile, ResumeInput
+from backend.models import DimensionAssessment, Profile, ResumeInput
 from backend.providers import ProviderError, ZhihuSearch, normalize_hits
 from backend.service import RetrievalService
 from backend.store import Store
@@ -413,6 +413,14 @@ class ApiTests(unittest.TestCase):
 
 
 class RankingTests(unittest.TestCase):
+    def test_unrelated_scoring_references_are_ignored(self):
+        assessment = DimensionAssessment.model_validate({"dimension": "major", "level": 1,
+            "reason": "模型引用了不适用字段", "evidence_fields": ["stage_outcomes", "unknown_field"]})
+        result = score_case({"facts": {"stage_outcomes": {"value": "获得面试"}}}, profile(), [assessment.model_dump()])
+        major = next(item for item in result["dimensions"] if item["dimension"] == "major")
+        self.assertIsNone(major["level"])
+        self.assertEqual(major["contribution"], 0)
+
     def test_clarification_with_invalid_quote_retains_verified_target(self):
         updated = {**profile(), "target": {"value": "模型重新拼接的目标", "source_text": "原文中不存在的拼接引用"}}
         result = RetrievalWorkflow.validate_profile(Profile.model_validate(updated), QUESTION, previous=profile())

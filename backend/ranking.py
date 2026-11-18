@@ -16,7 +16,7 @@ SCORE_LABELS = {**FACT_LABELS, "education": "学历与阶段", "plans": "计划�
                 "starting_point": "起点能力与行动"}
 SCORE_FIELDS = {
     "major": {"major"}, "education": {"education", "year", "career_stage"},
-    "target": {"target"}, "plans": {"plans"},
+    "target": {"target"}, "plans": {"plans", "actions"},
     "starting_point": {"starting_point", "actions"},
     "constraints": {"constraints", "time_and_cost"},
 }
