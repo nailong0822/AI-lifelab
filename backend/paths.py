@@ -111,7 +111,8 @@ class PathWorkflow:
         return [{**item, "note": item["note"][:300]} for item in self.store.completed_work(run_id)[:12]]
 
     def user_text(self, run):
-        return "\n".join([run["question"], *run["answers"].values(),
+        payload = (run.get('operation') or {}).get('payload', {})
+        return "\n".join([run["question"], payload.get('trusted_user_text', payload.get('instruction', '')), *run["answers"].values(),
                           *((run.get("retrieval_clarification") or {}).get("answers") or {}).values(),
                           *["已完成：" + item["title"] for item in self.store.completed_work(run["id"])]] )
 
@@ -547,12 +548,18 @@ class PathService:
             self.schedule(run_id, {"run_id": run_id, "operation": "plan"})
         return self.store.snapshot(run_id)
 
-    async def revise(self, run_id, body):
+    async def revise(self, run_id, body, *, action_id=None, user_evidence=None):
         async with self.lock:
             await self.await_checkpoint(run_id)
             run = self.store.get(run_id)
+            if action_id and any((op.get('payload') or {}).get('companion_action_id') == action_id
+                                 for op in [*run['operation_history'], run.get('operation') or {}]):
+                return self.store.snapshot(run_id)
             self.check_available(run, body.version)
-            self.begin(run_id, "revise", {"instruction": body.instruction}, {"input_request": None})
+            payload = {"instruction": body.instruction, 'companion_action_id': action_id}
+            if user_evidence is not None:
+                payload['trusted_user_text'] = '\n'.join(user_evidence)
+            self.begin(run_id, "revise", payload, {"input_request": None})
             self.schedule(run_id, {"run_id": run_id, "operation": "revise"})
         return self.store.snapshot(run_id)
 

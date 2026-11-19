@@ -3,11 +3,13 @@ import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate, usePa
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowRight, ArrowUpRight, BookOpen, Check, CheckCircle2, ChevronDown,
-  Circle, CircleAlert, Clock3, ExternalLink, FlaskConical, History, LoaderCircle,
-  Menu, MessageSquare, Plus, Search, SlidersHorizontal, Sparkles, Square, WifiOff, X,
+  Circle, CircleAlert, Clock3, ExternalLink, History, LoaderCircle,
+  Menu, MessageSquare, Plus, Search, Sparkles, Square, WifiOff, X, Compass, Orbit, Radio, Star as StarIcon,
 } from 'lucide-react'
 import { api } from './api'
-import PathsPage, { PathEntry } from './PathsPage'
+import PathsPage, { Dialog, PathEntry } from './PathsPage'
+import { JourneySteps, ObservatoryScene, Starfield } from './components/Universe'
+import { ThemeToggle } from './ThemeProvider'
 import { Button } from './components/ui/button'
 import type { Case, Health, Run, RunSummary, TraceEvent } from './types'
 
@@ -48,13 +50,13 @@ function Status({ status }: { status: string }) {
 function Sidebar({ history, close }: { history: RunSummary[]; close: () => void }) {
   return <aside className="sidebar">
     <Link className="brand" to="/retrieval" onClick={close}>
-      <span className="brand-symbol"><FlaskConical size={24} strokeWidth={1.7} /></span>
-      <span><strong>人生实验室</strong><small>LifeLab</small></span>
+      <span className="brand-symbol"><Orbit size={25} strokeWidth={1.3} /></span>
+      <span><strong>人生实验室</strong><small>LIFELAB · YOUR NEXT ORBIT</small></span>
     </Link>
     <Button asChild className="new-button"><Link to="/retrieval" onClick={close}><Plus size={17} />开启新的探索</Link></Button>
     <nav aria-label="主要导航">
-      <NavLink to="/retrieval" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')} onClick={close}><Search size={18} />经历检索<ArrowUpRight size={15} /></NavLink>
-      <NavLink to="/history" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')} onClick={close}><History size={18} />历史任务</NavLink>
+      <NavLink to="/retrieval" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')} onClick={close}><Compass size={18} />深空观测站<ArrowUpRight size={15} /></NavLink>
+      <NavLink to="/history" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')} onClick={close}><History size={18} />探索档案</NavLink>
     </nav>
     <div className="history-label">最近的探索</div>
     <div className="recent-list">
@@ -64,7 +66,8 @@ function Sidebar({ history, close }: { history: RunSummary[]; close: () => void 
           {run.status === 'running' && <span className="recent-dot" />}
         </Link>) : <p className="history-empty">你的探索会保存在这里</p>}
     </div>
-    <div className="sidebar-foot"><span className="leaf-dot" />探索记录保存在本地数据库</div>
+    <div className="sidebar-manifest"><Orbit size={25}/><p>人生没有标准航线。<br/>每一次探索，都算数。</p><span>STAY CURIOUS. KEEP GOING.</span></div>
+    <div className="sidebar-foot"><span className="leaf-dot" />你的探索，保存在本地</div>
   </aside>
 }
 
@@ -73,6 +76,7 @@ function Composer({ health, question, setQuestion, onSubmit, pending }: {
 }) {
   const configured = health?.model_configured && health.zhihu_configured
   return <form className="composer" onSubmit={event => { event.preventDefault(); onSubmit() }}>
+    <div className="composer-caption"><span><Radio size={13}/>向未知，发送你的第一个信号</span><small>01 / YOUR QUESTION</small></div>
     <textarea aria-label="描述你想探索的问题" placeholder="说说你的背景、正在考虑的选择，以及让你犹豫的地方…"
       value={question} onChange={event => setQuestion(event.target.value)} maxLength={6000}
       onKeyDown={event => {
@@ -81,26 +85,12 @@ function Composer({ health, question, setQuestion, onSubmit, pending }: {
         }
       }} />
     <div className="composer-footer">
-      <span><BookOpen size={15} />结合知乎经历 · 保留来源证据</span>
+      <span><BookOpen size={15} />从真实经历出发<span className="composer-shortcut">Ctrl / ⌘ + Enter</span></span>
       <Button type="submit" disabled={pending || !configured || question.trim().length < 5}>
-        {pending ? <LoaderCircle size={16} className="spin" /> : <>开始探索<ArrowRight size={16} /></>}
+        {pending ? <LoaderCircle size={16} className="spin" /> : <>开始探索<ArrowUpRight size={17} /></>}
       </Button>
     </div>
   </form>
-}
-
-function EmptyTrace() {
-  return <aside className="trace-panel trace-preview">
-    <div className="panel-heading"><span><span className="live-dot idle" />探索过程</span><small>Agent Trace</small></div>
-    <div className="trace-empty-icon"><FlaskConical size={25} strokeWidth={1.4} /></div>
-    <h3>等待开始检索</h3>
-    <p>开始后，在这里查看查询、来源和证据如何逐步形成。</p>
-    <ol className="preview-steps">
-      {['理解你的问题', '检索相似经历', '整理案例与证据', '呈现结果与信息缺口'].map((step, index) =>
-        <li key={step}><span>{index === 0 ? <Sparkles size={15} /> : <Circle size={9} />}</span>{step}</li>)}
-    </ol>
-    <div className="trace-preview-note"><SlidersHorizontal size={15} />每次探索最多进行 4 次检索</div>
-  </aside>
 }
 
 function NewRun({ health }: { health?: Health }) {
@@ -111,21 +101,25 @@ function NewRun({ health }: { health?: Health }) {
     mutationFn: () => api.create(question),
     onSuccess: run => { cache.invalidateQueries({ queryKey: ['history'] }); navigate('/retrieval/' + run.id) },
   })
-  return <div className="workspace-grid">
+  return <div className="observatory-home">
+    <JourneySteps active={0}/>
+    <div className="observatory-hero">
     <main className="new-workspace">
-      <div className="eyebrow"><span />经历检索</div>
-      <h1>你的下一步，<br /><em>可以从一次探索开始。</em></h1>
-      <p className="intro">找到走过相似道路的人，了解他们做过什么、遇到什么。<br className="desktop-break" />结合真实经历，梳理属于你的选择。</p>
+      <div className="eyebrow"><span />给人生一点，新的可能 <span className="eyebrow-line"/></div>
+      <h1>人生没有标准航线。<br /><em>先看见你的可能。</em></h1>
+      <p className="intro">有人走过你正犹豫的路。<br/>从他们的真实经历出发，找到属于自己的下一步。</p>
       <Composer health={health} question={question} setQuestion={setQuestion} onSubmit={() => create.mutate()} pending={create.isPending} />
       {create.error && <p className="inline-error" role="alert"><CircleAlert size={16} />{create.error.message}</p>}
-      <div className="examples">
-        <span>也可以从这些问题开始</span>
+      <div className="examples"><span>还没想好？从一个念头开始</span><div className="example-chips">
         {examples.map(example => <button type="button" key={example} onClick={() => setQuestion(example)}>
-          <span>{example}</span><ArrowUpRight size={16} />
+          <span>{['跨专业，寻找新方向', '升学，看看另一种可能', '转行，先做一次小实验'][examples.indexOf(example)]}</span><ArrowUpRight size={13} />
         </button>)}
-      </div>
+      </div></div>
     </main>
-    <EmptyTrace />
+    <ObservatoryScene />
+    </div>
+    <div className="observatory-principles">{[{icon: BookOpen, number: '01', title: '让经历成为坐标', text: '检索知乎真实分享，每条线索都有来源。'}, {icon: Orbit, number: '02', title: '让选择多一种可能', text: '比较不同方向，用小实验验证适合自己的路。'}, {icon: StarIcon, number: '03', title: '让改变发生在今天', text: '把远方拆成小行动，记录每一次真实进展。'}].map(item => <div key={item.number}><span>{item.number}</span><item.icon size={18}/><h2>{item.title}</h2><p>{item.text}</p></div>)}</div>
+    <footer className="observatory-footer"><span>以真实经历为起点，以你的选择为方向。</span><span>LIFELAB / EXPLORE YOUR POSSIBILITIES</span></footer>
   </div>
 }
 
@@ -346,7 +340,7 @@ function RunPage() {
   const cache = useQueryClient()
   const [events, setEvents] = useState<TraceEvent[]>([])
   const [connected, setConnected] = useState(true)
-  const [mobileTab, setMobileTab] = useState('result')
+  const [traceOpen, setTraceOpen] = useState(false)
   const [selected, setSelected] = useState<Case | null>(null)
   const [showAllCases, setShowAllCases] = useState(false)
   const closeEvidence = useCallback(() => setSelected(null), [])
@@ -382,11 +376,11 @@ function RunPage() {
   if (result.error) return <div className="page-loading"><CircleAlert size={22} /><p>{result.error.message}</p><Button asChild><Link to="/retrieval">返回检索</Link></Button></div>
   const run = result.data
   return <>
-    <div className="mobile-tabs"><button className={mobileTab === 'result' ? 'selected' : ''} onClick={() => setMobileTab('result')}>探索结果</button>
-      <button className={mobileTab === 'trace' ? 'selected' : ''} onClick={() => setMobileTab('trace')}>运行过程 {run.request_count}/4</button></div>
-    <div className={'workspace-grid active-workspace mobile-' + mobileTab}>
+    <div className="retrieval-result-header"><JourneySteps active={0}/><button className="trace-launch" onClick={() => setTraceOpen(true)}><Radio size={14}/>{settled ? '查看探索过程' : '正在观测'}<span>{run.request_count}/{run.limits.requests}</span></button></div>
+    <div className="workspace-grid active-workspace">
       <main className="run-workspace">
-        <div className="run-title-row"><span className="eyebrow">这一次探索</span><Status status={run.status} /></div>
+        {!settled && <div className="run-signal-bar"><span className="signal-pulse"/><span>{events.at(-1)?.title || '正在接收你的探索信号'}</span><button onClick={() => setTraceOpen(true)}>查看实时轨迹<ArrowUpRight size={13}/></button></div>}
+        <div className="run-title-row"><span className="eyebrow">OBSERVATION / 这一次探索</span><Status status={run.status} /></div>
         <h1 className="run-question">{run.question}</h1>
         <div className="run-meta"><span><Clock3 size={13} />{new Date(run.created_at * 1000).toLocaleString('zh-CN', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
           {!settled && <button onClick={() => cancel.mutate()} disabled={cancel.isPending}><Square size={12} />停止检索</button>}</div>
@@ -409,7 +403,7 @@ function RunPage() {
           <div className="cases-grid">{(showAllCases ? run.cases : run.cases.slice(0, 5)).map(item => <CaseCard key={item.id} item={item} onEvidence={setSelected} />)}</div>
           {run.cases.length > 5 && <Button variant="ghost" className="more-cases" onClick={() => setShowAllCases(previous => !previous)}>{showAllCases ? '收起其他案例' : `查看其余 ${run.cases.length - 5} 个案例`}</Button>}
         </section>}
-        {!run.cases.length && run.status === 'running' && <div className="collecting"><span><Search size={22} /></span><h3>正在寻找与你相关的经历</h3><p>查询与来源会同步出现在右侧过程区。</p></div>}
+        {!run.cases.length && run.status === 'running' && <div className="collecting"><span><Search size={22} /></span><h3>正在寻找与你相关的经历</h3><p>点击“查看实时轨迹”，了解查询与来源。</p></div>}
         {run.coverage.length > 0 && <section className="coverage-section">
           <div className="section-heading"><h2>证据覆盖情况</h2><span>点击案例查看适用条件</span></div>
           <div className="coverage-list">{run.coverage.map(item => <div key={item.dimension}><span>{item.label}</span>
@@ -419,35 +413,52 @@ function RunPage() {
           {run.gaps.map((gap, index) => <div key={index}><Circle size={8} /><p>{gap.description}</p><span>{gap.kind === 'practice' ? '待实践验证' : '证据待补充'}</span></div>)}</section>}
         {run.report && <p className="report-note">{run.report.evidence_note}</p>}
       </main>
-      <TracePanel run={run} events={events} connected={connected} />
     </div>
+    {traceOpen && <Dialog title="观测日志 · Agent Trace" close={() => setTraceOpen(false)}><TracePanel run={run} events={events} connected={connected} /></Dialog>}
     {selected && <EvidenceDrawer item={selected} run={run} close={closeEvidence} />}
   </>
 }
 
 function HistoryPage({ history }: { history: RunSummary[] }) {
-  return <main className="history-page"><div className="eyebrow">探索记录</div><h1>每一次思考，都有迹可循。</h1><p className="intro">重新查看你的问题、检索过程和已找到的经历。</p>
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState('all')
+  const filtered = history.filter(run => run.question.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (filter === 'all' || run.status === filter))
+  return <main className="history-page"><div className="archive-orbit" aria-hidden="true"><Orbit size={170} strokeWidth={.4}/></div><div className="eyebrow">FLIGHT ARCHIVE / 探索档案</div><h1>每一次思考，<br/><em>都留下自己的轨迹。</em></h1><p className="intro">回到一个念头，继续一段尚未结束的探索。</p>
+    <div className="archive-controls"><label><Search size={15}/><input aria-label="搜索探索记录" placeholder="寻找过去的探索…" value={search} onChange={event => setSearch(event.target.value)}/></label><div>{[['all', '全部'], ['finished', '已完成'], ['running', '探索中']].map(([value, label]) => <button key={value} aria-pressed={filter === value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div></div>
     {!history.length ? <div className="history-placeholder"><History size={30} /><h2>还没有探索记录</h2><Button asChild><Link to="/retrieval">开始第一次探索<ArrowRight size={16} /></Link></Button></div>
-      : <div className="history-table">{history.map(run => <Link key={run.id} to={'/retrieval/' + run.id}>
+      : <div className="history-table">{filtered.map(run => <Link key={run.id} to={'/retrieval/' + run.id}>
         <span className="history-record-icon"><Search size={19} /></span><div><h2>{run.question}</h2><time>{new Date(run.created_at * 1000).toLocaleString('zh-CN')}</time></div>
         <Status status={run.status} /><ArrowRight size={18} />
       </Link>)}</div>}
+    {!!history.length && !filtered.length && <p className="archive-empty">没有找到符合条件的探索，试试其他关键词。</p>}
   </main>
 }
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
-  const history = useQuery({ queryKey: ['history'], queryFn: api.list, refetchInterval: 5000 })
-  const health = useQuery({ queryKey: ['health'], queryFn: api.health, refetchInterval: 5000 })
-  if (location.pathname.startsWith('/explore/')) return <Routes><Route path="/explore/:runId" element={<PathsPage />} /></Routes>
-  return <div className="app-shell">
+  const exploring = location.pathname.startsWith('/explore/')
+  const history = useQuery({ queryKey: ['history'], queryFn: api.list, refetchInterval: 10000, enabled: !exploring })
+  const health = useQuery({ queryKey: ['health'], queryFn: api.health, refetchInterval: 15000, enabled: !exploring })
+  useEffect(() => { setMenuOpen(false); window.scrollTo({top: 0}) }, [location.pathname])
+  useEffect(() => {
+    if (!menuOpen) return
+    const previous = document.activeElement as HTMLElement | null
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.querySelector<HTMLElement>('.sidebar a')?.focus()
+    const close = (event: KeyboardEvent) => {if (event.key === 'Escape') setMenuOpen(false)}
+    window.addEventListener('keydown', close)
+    return () => {window.removeEventListener('keydown', close); document.body.style.overflow = overflow; previous?.focus()}
+  }, [menuOpen])
+  if (exploring) return <><Starfield/><Routes><Route path="/explore/:runId" element={<PathsPage />} /></Routes></>
+  return <><Starfield/><div className="app-shell">
     {menuOpen && <button className="mobile-overlay" aria-label="关闭导航" onClick={() => setMenuOpen(false)} />}
-    <div className={menuOpen ? 'sidebar-wrap open' : 'sidebar-wrap'}><Sidebar history={history.data || []} close={() => setMenuOpen(false)} /></div>
-    <div className="app-body">
-      <header className="topbar"><button className="menu-toggle" aria-label="打开导航" onClick={() => setMenuOpen(true)}><Menu size={21} /></button>
-        <span className="breadcrumb">人生实验室<span>/</span><strong>{location.pathname === '/history' ? '历史任务' : '经历检索'}</strong></span>
-        <div className="topbar-right"><span className="model-label"><Sparkles size={14} />DeepSeek Flash</span></div>
+    <div id="main-navigation" className={menuOpen ? 'sidebar-wrap open' : 'sidebar-wrap'}><Sidebar history={history.data || []} close={() => setMenuOpen(false)} /></div>
+    <div className="app-body" inert={menuOpen}>
+      <header className="topbar"><button className="menu-toggle" aria-label="打开导航" aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(true)}><Menu size={21} /></button>
+        <span className="breadcrumb"><span className="breadcrumb-caption">WORKSPACE</span><span>/</span><strong>{location.pathname === '/history' ? '探索档案' : '深空观测站'}</strong></span>
+        <div className="topbar-right"><span className="connection-status"><i/>{health.isError ? '连接恢复中' : health.data ? '观测站已连接' : '连接观测站'}</span><span className="model-label"><Sparkles size={13} />DeepSeek Flash</span><ThemeToggle/><span className="profile-monogram">L</span></div>
       </header>
       {health.isError && <div className="config-banner error-banner"><WifiOff size={16} />暂时无法连接后端，请确认检索服务已启动。</div>}
       {health.data && (!health.data.model_configured || !health.data.zhihu_configured) && <div className="config-banner">
@@ -461,5 +472,5 @@ export default function App() {
         <Route path="*" element={<Navigate to="/retrieval" replace />} />
       </Routes>
     </div>
-  </div>
+  </div></>
 }

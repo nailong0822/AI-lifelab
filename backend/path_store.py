@@ -170,9 +170,11 @@ class PathStore:
             run.update(status="ready", pending_revision=None, input_request=None, error=None, stop_reason=None)
         self.mutate(run_id, commit, event_type="plan.saved", title="路径计划与版本已保存")
 
-    def update_progress(self, run_id: str, body):
+    def update_progress(self, run_id: str, body, *, expected_revision=None, on_applied=None):
         def update(run, db):
             self.check_version(run, body.version)
+            if expected_revision is not None and run['progress_revision'] != expected_revision:
+                raise PathConflict('任务进度已变化，请基于最新状态重新确认')
             if run["status"] != "ready":
                 raise PathConflict("请在当前规划操作完成后更新任务")
             if run["journey_status"] == "paused":
@@ -194,9 +196,13 @@ class PathStore:
                         raise PathConflict("请先完成或跳过这个任务的前置步骤")
             previous = run["progress"].get(key, {})
             if previous.get("status") == body.status and previous.get("note", "") == body.note:
+                if on_applied:
+                    on_applied(run, db, previous, False)
                 return
             run["progress"][key] = {"status": body.status, "note": body.note,
                                     "updated_at": time.time(), "basis": "user_report", "task_title": task["title"]}
             run["progress_revision"] += 1
+            if on_applied:
+                on_applied(run, db, previous, True)
         self.mutate(run_id, update, event_type="progress.updated", title="任务进度已更新",
                     payload={"stage_id": body.stage_id, "task_id": body.task_id, "status": body.status, "note": body.note})

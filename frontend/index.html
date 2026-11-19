@@ -3,8 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f4f6f2" />
-    <meta name="description" content="人生实验室，结合真实经历，探索你的下一步。" />
+    <meta name="theme-color" content="#090f18" />
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem('lifelab-theme') === 'light' ? 'light' : 'dark';
+      } catch {
+        document.documentElement.dataset.theme = 'dark';
+      }
+    </script>
+    <meta name="description" content="人生没有标准航线。从知乎真实经历出发，探索不同的人生路径，让每一次小行动点亮你的成长星图。" />
     <title>人生实验室 · 经历检索</title>
   </head>
   <body>

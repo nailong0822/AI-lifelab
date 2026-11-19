@@ -7,13 +7,13 @@ import { twMerge } from 'tailwind-merge'
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)) }
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700 disabled:pointer-events-none disabled:opacity-45',
+  'ui-button inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 disabled:pointer-events-none disabled:opacity-45',
   {
     variants: {
       variant: {
-        default: 'bg-[#294f42] text-white hover:bg-[#1d3c31] shadow-sm',
-        outline: 'border border-[#dce1d9] bg-white hover:bg-[#f2f5ef] text-[#354039]',
-        ghost: 'hover:bg-[#e8ede3] text-[#5c665b]',
+        default: 'ui-primary',
+        outline: 'ui-outline',
+        ghost: 'ui-ghost',
       },
       size: { default: 'h-11 px-5', sm: 'h-9 px-3', icon: 'h-10 w-10' },
     },

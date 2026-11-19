@@ -20,6 +20,8 @@ from .workflow import RetrievalWorkflow
 from .path_models import JourneyUpdate, PathResponse, PathSelection, PlanRevision, ProgressUpdate, StageRequest
 from .path_store import PathConflict, PathStore
 from .paths import PathService, PathWorkflow
+from .companion import CompanionService
+from .companion_api import install_companion_routes
 
 
 def create_app(settings: Settings | None = None, *, model=None, search=None) -> FastAPI:
@@ -43,9 +45,13 @@ def create_app(settings: Settings | None = None, *, model=None, search=None) -> 
                 path_service = PathService(configured, path_store, PathWorkflow(path_store, model or DeepSeekModel(), saver))
                 app.state.path_store = path_store
                 app.state.path_service = path_service
+                companion = CompanionService(configured, path_store, path_service, model or DeepSeekModel(), saver)
+                app.state.companion = companion
                 await service.recover()
                 await path_service.recover()
+                await companion.recover()
                 yield
+                await companion.close()
                 await path_service.close()
                 await service.close()
 
@@ -234,6 +240,8 @@ def create_app(settings: Settings | None = None, *, model=None, search=None) -> 
                 await asyncio.sleep(0.3)
         return StreamingResponse(stream(), media_type="text/event-stream",
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+    install_companion_routes(app, health)
 
     dist = ROOT / "frontend" / "dist"
     if (dist / "assets").is_dir():

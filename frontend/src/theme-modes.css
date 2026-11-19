@@ -1,0 +1,536 @@
+/* Original colors remain the dark defaults; daylight tokens cover all surfaces. */
+:root { --color-scheme: dark; }
+html[data-theme="light"] {
+  --color-scheme: light;
+  --background: #f1f5f8;
+  --surface: #ffffff;
+  --text: #253744;
+  --text-secondary: #475f70;
+  --muted: #587083;
+  --line: #29475f20;
+  --line-bright: #29475f3b;
+  --accent: #3e6d7b;
+  --sand: #365c70;
+  --palette-00000018: rgba(35, 60, 80, 0.047);
+  --palette-0000001f: rgba(35, 60, 80, 0.061);
+  --palette-0002: rgba(35, 60, 80, 0.067);
+  --palette-0003: rgba(35, 60, 80, 0.100);
+  --palette-0005: rgba(35, 60, 80, 0.167);
+  --palette-000b: rgba(35, 60, 80, 0.367);
+  --palette-010710ba: rgba(237, 241, 247, 0.729);
+  --palette-020811b8: rgba(237, 241, 247, 0.722);
+  --palette-020914ce: rgba(238, 241, 247, 0.808);
+  --palette-07111b33: rgba(240, 244, 248, 0.200);
+  --palette-07142080: rgba(241, 245, 249, 0.502);
+  --palette-08152335: rgba(241, 245, 249, 0.208);
+  --palette-090f18: #f0f3f8;
+  --palette-090f1855: rgba(240, 243, 248, 0.333);
+  --palette-090f18e8: rgba(240, 243, 248, 0.910);
+  --palette-09121b66: rgba(240, 244, 248, 0.400);
+  --palette-09142080: rgba(241, 245, 249, 0.502);
+  --palette-0b121cec: rgba(241, 244, 249, 0.925);
+  --palette-0b192333: rgba(242, 246, 249, 0.200);
+  --palette-0c1824: #f2f6f9;
+  --palette-0e1c2acc: rgba(244, 247, 250, 0.800);
+  --palette-0f1e2c: #f4f7fa;
+  --palette-101d2a52: rgba(244, 247, 250, 0.322);
+  --palette-101d2ce8: rgba(244, 247, 250, 0.910);
+  --palette-101e2b: #f4f7fa;
+  --palette-101e2be8: rgba(244, 247, 250, 0.910);
+  --palette-111d29: #f4f7fa;
+  --palette-11202d: #f5f8fa;
+  --palette-11202d88: rgba(245, 248, 250, 0.533);
+  --palette-11203096: rgba(245, 248, 251, 0.588);
+  --palette-12212d77: rgba(245, 248, 250, 0.467);
+  --palette-122230b3: rgba(245, 248, 251, 0.702);
+  --palette-132433f5: rgba(246, 249, 251, 0.961);
+  --palette-14232bb0: rgba(245, 248, 250, 0.690);
+  --palette-15243255: rgba(246, 249, 251, 0.333);
+  --palette-172634a8: rgba(247, 249, 251, 0.659);
+  --palette-172937ba: rgba(247, 250, 252, 0.729);
+  --palette-172939: #f8fafc;
+  --palette-18303a52: rgba(248, 251, 252, 0.322);
+  --palette-192938d9: rgba(248, 250, 252, 0.851);
+  --palette-192b3bcc: rgba(248, 250, 252, 0.800);
+  --palette-1a2a2df5: rgba(247, 250, 250, 0.961);
+  --palette-1a2a39ed: rgba(248, 250, 252, 0.929);
+  --palette-1a3030: #f7fbfb;
+  --palette-1b2c40dd: rgba(250, 251, 253, 0.867);
+  --palette-1e3842d9: rgba(250, 252, 253, 0.851);
+  --palette-202a2f: #f9fafb;
+  --palette-233132: #f9fbfb;
+  --palette-23354355: rgba(121, 151, 175, 0.333);
+  --palette-26373b: #fbfcfd;
+  --palette-304859: #6489a2;
+  --palette-32515b26: rgba(98, 145, 161, 0.149);
+  --palette-384e6a20: rgba(90, 116, 149, 0.125);
+  --palette-3a5565: #5b8197;
+  --palette-3d5969: #587e93;
+  --palette-3d596c: #577a91;
+  --palette-40596d: #56758f;
+  --palette-47385f19: rgba(117, 93, 156, 0.098);
+  --palette-4a6a80: #4d6e85;
+  --palette-4b81992b: rgba(67, 111, 131, 0.169);
+  --palette-4b8b7e0d: rgba(72, 133, 120, 0.051);
+  --palette-5094a025: rgba(66, 118, 128, 0.145);
+  --palette-51687a: #536b7e;
+  --palette-596e80: #536778;
+  --palette-59798f: #4c6779;
+  --palette-5b7d8e: #4d6978;
+  --palette-5d777b: #587074;
+  --palette-607a8d: #4f6474;
+  --palette-627e91: #4e6473;
+  --palette-637789: #526271;
+  --palette-647b8a: #526471;
+  --palette-65798b: #516270;
+  --palette-668b9c: #496471;
+  --palette-698596: #4d626e;
+  --palette-6b8495: #4e606d;
+  --palette-6b8a9b: #4a616e;
+  --palette-6b9eaa14: rgba(65, 104, 113, 0.078);
+  --palette-6c8394: #4f606c;
+  --palette-6c8b9e: #49606e;
+  --palette-6c9e8a03: rgba(73, 110, 95, 0.012);
+  --palette-6c9e8a12: rgba(73, 110, 95, 0.071);
+  --palette-6d93a16b: rgba(71, 99, 110, 0.420);
+  --palette-6e8b9c: #4a606c;
+  --palette-6e8c9d: #49606d;
+  --palette-6e8c9f: #485f6d;
+  --palette-6eabcb25: rgba(55, 90, 107, 0.145);
+  --palette-708d9f: #485e6c;
+  --palette-70afd415: rgba(54, 86, 104, 0.082);
+  --palette-718a9e: #495c6b;
+  --palette-718c9c: #4a5f6b;
+  --palette-718e9b: #4b616b;
+  --palette-718fa0: #485f6c;
+  --palette-719f8b0a: rgba(73, 107, 92, 0.039);
+  --palette-728d9e: #495e6b;
+  --palette-72929f: #49616b;
+  --palette-738a9c: #4b5c6a;
+  --palette-738f9f70: rgba(73, 94, 106, 0.439);
+  --palette-7394a309: rgba(70, 96, 107, 0.035);
+  --palette-748c9d: #4a5c69;
+  --palette-7495a6: #455e6b;
+  --palette-758e9e: #4a5d69;
+  --palette-7595a5: #455e6a;
+  --palette-7692a4: #465c6a;
+  --palette-7693a6: #455b6a;
+  --palette-77919f: #495d68;
+  --palette-77bcb734: rgba(56, 109, 105, 0.204);
+  --palette-7895a5: #465c69;
+  --palette-7897a7: #455d69;
+  --palette-7994a1: #485d67;
+  --palette-7996a5: #465d68;
+  --palette-7999a8: #445d69;
+  --palette-7a95a5: #465b68;
+  --palette-7b97a5: #465c67;
+  --palette-7b99aa: #435b68;
+  --palette-7c623019: rgba(143, 124, 86, 0.098);
+  --palette-7c94a4: #475a66;
+  --palette-7c9aab: #435a68;
+  --palette-7c9cac: #425b68;
+  --palette-7caaa0: #436860;
+  --palette-7d96a5: #475a66;
+  --palette-7d9aab: #435a67;
+  --palette-7e9aaa: #445a66;
+  --palette-7e9eaf: #405a68;
+  --palette-7ea493: #476558;
+  --palette-7f96a3: #485a64;
+  --palette-7f9aaa: #445966;
+  --palette-7f9caa: #445b66;
+  --palette-7f9dac: #425a66;
+  --palette-7f9eaa: #445c66;
+  --palette-8098a5: #475a64;
+  --palette-809da9: #445c65;
+  --palette-80c9d81b: rgba(51, 91, 99, 0.106);
+  --palette-8199a6: #475a64;
+  --palette-819daf47: rgba(65, 87, 102, 0.278);
+  --palette-829ba9: #455964;
+  --palette-829ca9: #455a64;
+  --palette-829caa: #445964;
+  --palette-829ea9: #455b64;
+  --palette-829eac: #435965;
+  --palette-82a1af: #415a65;
+  --palette-8396a5: #475762;
+  --palette-839fac: #435a64;
+  --palette-839fad: #425964;
+  --palette-839fae: #425865;
+  --palette-86a5b3: #3f5864;
+  --palette-87a4b1: #405863;
+  --palette-87bbd3: #335362;
+  --palette-88a4b1: #405862;
+  --palette-89a1ad: #435761;
+  --palette-89a4b325: rgba(63, 86, 98, 0.145);
+  --palette-89b8ae: #3c645b;
+  --palette-8aa3af: #425761;
+  --palette-8aa3b0: #415661;
+  --palette-8aa6b3: #3f5762;
+  --palette-8aa7b82b: rgba(60, 85, 99, 0.169);
+  --palette-8aa8b4: #3f5862;
+  --palette-8ab5ac04: rgba(62, 98, 91, 0.016);
+  --palette-8ab5ac15: rgba(62, 98, 91, 0.082);
+  --palette-8abbc033: rgba(54, 97, 101, 0.200);
+  --palette-8b9f9e: #4d5d5c;
+  --palette-8ba0ab: #45565f;
+  --palette-8ba3b1: #415561;
+  --palette-8ba5b3: #405561;
+  --palette-8ba6b1: #415761;
+  --palette-8ba6b2: #405761;
+  --palette-8ba7c20d: rgba(53, 78, 101, 0.051);
+  --palette-8ba8b6: #3e5662;
+  --palette-8c9eaa: #46545e;
+  --palette-8ca7b4: #3f5661;
+  --palette-8caabc10: rgba(58, 83, 99, 0.063);
+  --palette-8cabb6: #3e5861;
+  --palette-8cabba22: rgba(59, 86, 98, 0.133);
+  --palette-8da1ad: #44555e;
+  --palette-8da5b1: #41555f;
+  --palette-8da8b7: #3d5461;
+  --palette-8dabb3: #405960;
+  --palette-8db59e: #3f604d;
+  --palette-8ea7b5: #3f5460;
+  --palette-8ea8b4: #3f5560;
+  --palette-8ea8b402: rgba(63, 85, 96, 0.008);
+  --palette-8ea8b409: rgba(63, 85, 96, 0.035);
+  --palette-8eaaa9: #465d5c;
+  --palette-8eaab9: #3c5461;
+  --palette-8eabba: #3b5461;
+  --palette-8eb7a8: #3d6054;
+  --palette-8ebba7: #3b6150;
+  --palette-8fa2af: #43535e;
+  --palette-8fa8b4: #40555f;
+  --palette-8fa8b5: #3f545f;
+  --palette-8fa8b8: #3d5260;
+  --palette-8faabb: #3b5261;
+  --palette-8fb0b2: #415d5e;
+  --palette-8fb3bd: #395961;
+  --palette-8fb6ad: #3e6058;
+  --palette-90baab: #3c6053;
+  --palette-90c3ac25: rgba(53, 99, 78, 0.145);
+  --palette-91abae: #445a5c;
+  --palette-91adba: #3c545f;
+  --palette-91adbe20: rgba(57, 82, 97, 0.125);
+  --palette-91aeb9: #3d565f;
+  --palette-92aeb8: #3d565e;
+  --palette-92b3c442: rgba(53, 82, 98, 0.259);
+  --palette-92b6a6: #3f5e50;
+  --palette-92b6a607: rgba(63, 94, 80, 0.027);
+  --palette-93b4c318: rgba(54, 83, 97, 0.094);
+  --palette-93c6b92b: rgba(52, 98, 86, 0.169);
+  --palette-94bac306: rgba(54, 88, 96, 0.024);
+  --palette-94c3b428: rgba(54, 96, 83, 0.157);
+  --palette-96adb7: #3f535c;
+  --palette-96c5cf55: rgba(49, 87, 95, 0.333);
+  --palette-97b0be: #3a505d;
+  --palette-97b5b30a: rgba(64, 90, 89, 0.039);
+  --palette-98b2a9: #435951;
+  --palette-98b5b3: #415a58;
+  --palette-98bbca04: rgba(50, 82, 96, 0.016);
+  --palette-98bda507: rgba(59, 92, 71, 0.027);
+  --palette-98c2b307: rgba(55, 94, 80, 0.027);
+  --palette-99c1b9: #385d55;
+  --palette-9ab5c31c: rgba(55, 80, 93, 0.110);
+  --palette-9ab7ae: #405951;
+  --palette-9abda32e: rgba(59, 91, 67, 0.180);
+  --palette-9abdb0: #3b5b4f;
+  --palette-9abdb70e: rgba(59, 91, 85, 0.055);
+  --palette-9ac1bc08: rgba(56, 92, 87, 0.031);
+  --palette-9ac1bc22: rgba(56, 92, 87, 0.133);
+  --palette-9ac5b2: #365d4c;
+  --palette-9ac6b67a: rgba(53, 94, 79, 0.478);
+  --palette-9bb3bf: #3a505b;
+  --palette-9bb5bf: #3a525b;
+  --palette-9bb5cf07: rgba(48, 71, 94, 0.027);
+  --palette-9bb5cf18: rgba(48, 71, 94, 0.094);
+  --palette-9bc0be30: rgba(57, 91, 89, 0.188);
+  --palette-9bc2ad07: rgba(56, 92, 72, 0.027);
+  --palette-9bc4a52a: rgba(54, 92, 64, 0.165);
+  --palette-9bc9b43b: rgba(51, 94, 74, 0.231);
+  --palette-9bcfc080: rgba(48, 94, 81, 0.502);
+  --palette-9cabb6: #414e58;
+  --palette-9cb5c210: rgba(56, 79, 91, 0.063);
+  --palette-9cb5c213: rgba(56, 79, 91, 0.075);
+  --palette-9cbccb04: rgba(49, 80, 94, 0.016);
+  --palette-9cbea32b: rgba(59, 90, 65, 0.169);
+  --palette-9cbfb04d: rgba(58, 90, 77, 0.302);
+  --palette-9cc5a947: rgba(54, 92, 66, 0.278);
+  --palette-9db4b3: #425756;
+  --palette-9db6c1: #39505a;
+  --palette-9dc1b1: #395a4b;
+  --palette-9eb5bf: #3b5059;
+  --palette-9eb9c1: #39525a;
+  --palette-9ebcad: #3d584a;
+  --palette-9ebfce1c: rgba(48, 79, 93, 0.110);
+  --palette-9ec8c23b: rgba(52, 92, 86, 0.231);
+  --palette-9ec9bb: #335c4f;
+  --palette-9fac9955: rgba(76, 87, 71, 0.333);
+  --palette-9fb6bf: #3b5058;
+  --palette-9fbcb7: #3d5753;
+  --palette-9fbdad: #3c5849;
+  --palette-9fc2b7: #39594f;
+  --palette-9fc2ba: #395952;
+  --palette-9fc3b136: rgba(56, 90, 73, 0.212);
+  --palette-9fc3ca08: rgba(51, 85, 92, 0.031);
+  --palette-9fc5b6: #375a4c;
+  --palette-9fc5b610: rgba(55, 90, 76, 0.063);
+  --palette-9fc7b4: #355b49;
+  --palette-9fcbc039: rgba(50, 92, 82, 0.224);
+  --palette-a0b7bd: #3d5257;
+  --palette-a0bed80d: rgba(46, 70, 90, 0.051);
+  --palette-a0c1ce29: rgba(48, 80, 93, 0.161);
+  --palette-a0c3af: #385946;
+  --palette-a0c3b63a: rgba(56, 89, 77, 0.227);
+  --palette-a0c7ba30: rgba(53, 90, 78, 0.188);
+  --palette-a1c2cc25: rgba(50, 82, 91, 0.145);
+  --palette-a2c1ac07: rgba(58, 87, 67, 0.027);
+  --palette-a2c1ac25: rgba(58, 87, 67, 0.145);
+  --palette-a2c3d425: rgba(47, 76, 91, 0.145);
+  --palette-a3bac1: #3a5056;
+  --palette-a3c0ce24: rgba(48, 77, 91, 0.141);
+  --palette-a3c3aa: #39573f;
+  --palette-a3c4cb05: rgba(51, 83, 90, 0.020);
+  --palette-a3c5b50e: rgba(55, 88, 72, 0.055);
+  --palette-a3c5b524: rgba(55, 88, 72, 0.141);
+  --palette-a3c8bb: #35594c;
+  --palette-a3cabb10: rgba(52, 89, 75, 0.063);
+  --palette-a3cabb5c: rgba(52, 89, 75, 0.361);
+  --palette-a3ceca: #305b57;
+  --palette-a3ceca03: rgba(48, 91, 87, 0.012);
+  --palette-a3ceca08: rgba(48, 91, 87, 0.031);
+  --palette-a3ceca10: rgba(48, 91, 87, 0.063);
+  --palette-a3ceca75: rgba(48, 91, 87, 0.459);
+  --palette-a4b8be: #3d4f55;
+  --palette-a4bcb5: #3e544e;
+  --palette-a4bf9e0b: rgba(64, 89, 59, 0.043);
+  --palette-a4c5d20b: rgba(47, 78, 91, 0.043);
+  --palette-a4cec1: #315a4d;
+  --palette-a4cec136: rgba(49, 90, 77, 0.212);
+  --palette-a4d7d010: rgba(46, 89, 83, 0.063);
+  --palette-a5bcc7: #364d57;
+  --palette-a5bdbf: #3c5355;
+  --palette-a5c1b4: #3b5549;
+  --palette-a5c4ab20: rgba(56, 86, 62, 0.125);
+  --palette-a5c9c23d: rgba(53, 88, 81, 0.239);
+  --palette-a5d2c619: rgba(47, 90, 79, 0.098);
+  --palette-a6b8bf: #3c4d54;
+  --palette-a6babb: #3f5253;
+  --palette-a6c6be: #37564e;
+  --palette-a6c7b5: #365745;
+  --palette-a6c8db08: rgba(45, 72, 87, 0.031);
+  --palette-a6c8db1a: rgba(45, 72, 87, 0.102);
+  --palette-a77d4b10: rgba(127, 99, 65, 0.063);
+  --palette-a7bdaf: #3e5346;
+  --palette-a7c2ba2d: rgba(58, 84, 77, 0.176);
+  --palette-a7c5bc: #38554d;
+  --palette-a8bbc4: #394c54;
+  --palette-a8bd9c: #475a3c;
+  --palette-a8c3bc: #3a544d;
+  --palette-a8c3bf07: rgba(58, 84, 80, 0.027);
+  --palette-a8c3bf0c: rgba(58, 84, 80, 0.047);
+  --palette-a8c6d132: rgba(47, 78, 89, 0.196);
+  --palette-a9c1ca05: rgba(53, 77, 86, 0.020);
+  --palette-a9c9c3: #36554f;
+  --palette-a9c9c63d: rgba(54, 85, 82, 0.239);
+  --palette-a9cdbd30: rgba(50, 87, 71, 0.188);
+  --palette-aabfc5: #394d53;
+  --palette-aac6d32b: rgba(46, 75, 88, 0.169);
+  --palette-aac8d42b: rgba(46, 76, 88, 0.169);
+  --palette-abd0c1: #305747;
+  --palette-acd3c4: #2e5747;
+  --palette-adc4bf: #3a514c;
+  --palette-adc5ad: #3a513a;
+  --palette-adc8bd69: rgba(55, 82, 71, 0.412);
+  --palette-adcbce5c: rgba(51, 81, 85, 0.361);
+  --palette-adccbe2b: rgba(52, 84, 69, 0.169);
+  --palette-aec3ca: #364b52;
+  --palette-aec8c73d: rgba(55, 82, 81, 0.239);
+  --palette-aecbd44d: rgba(46, 77, 86, 0.302);
+  --palette-b0c7cd: #344c52;
+  --palette-b0cbbd: #365143;
+  --palette-b0ccda04: rgba(44, 71, 85, 0.016);
+  --palette-b1c7c5: #394f4d;
+  --palette-b1cdd332: rgba(47, 77, 84, 0.196);
+  --palette-b2c3c8: #384a4f;
+  --palette-b2c8ca: #374e50;
+  --palette-b2c8cf: #334a52;
+  --palette-b2c9b9: #384f3f;
+  --palette-b2cddd06: rgba(43, 69, 84, 0.024);
+  --palette-b4d3e133: rgba(42, 70, 82, 0.200);
+  --palette-b4d3e155: rgba(42, 70, 82, 0.333);
+  --palette-b4d3e177: rgba(42, 70, 82, 0.467);
+  --palette-b5cbcf: #344b50;
+  --palette-b5ccc63b: rgba(54, 78, 72, 0.231);
+  --palette-b5cecb: #344f4c;
+  --palette-b6a988: #64593d;
+  --palette-b6c9cc: #364b4e;
+  --palette-b6ceca: #354f4a;
+  --palette-b6cecb: #354f4b;
+  --palette-b7845910: rgba(119, 88, 61, 0.063);
+  --palette-b7845933: rgba(119, 88, 61, 0.200);
+  --palette-b7c5b3: #3f4d3b;
+  --palette-b7c9cd: #36494d;
+  --palette-b7cec9: #354e48;
+  --palette-b7cfcc: #344e4b;
+  --palette-b7d1cd: #334f4b;
+  --palette-b7d7ce: #2d5247;
+  --palette-b8a990: #5f533d;
+  --palette-b8cdd0: #344b4e;
+  --palette-b8ced0: #344c4e;
+  --palette-b8d0c9: #344e46;
+  --palette-b8d2b7: #335032;
+  --palette-b8d4cc: #305047;
+  --palette-b9c8a342: rgba(74, 89, 53, 0.259);
+  --palette-bacacb: #384a4b;
+  --palette-bacfd1: #334b4d;
+  --palette-bba77755: rgba(109, 94, 56, 0.333);
+  --palette-bba777a0: rgba(109, 94, 56, 0.627);
+  --palette-bbccce: #36494b;
+  --palette-bbcfce: #354b4a;
+  --palette-bcb695: #5e583b;
+  --palette-bcd1bb: #354c34;
+  --palette-bdd1cf: #344b49;
+  --palette-bed1d1: #354a4a;
+  --palette-bfcecf: #364749;
+  --palette-bfd3d3: #334a4a;
+  --palette-c0a07845: rgba(108, 85, 55, 0.271);
+  --palette-c0a47f: #6a5436;
+  --palette-c0ae87: #675736;
+  --palette-c1cdd1: #354348;
+  --palette-c1d6cc: #314a3e;
+  --palette-c2b79b: #5c5238;
+  --palette-c2b79b30: rgba(92, 82, 56, 0.188);
+  --palette-c2d4d3: #334947;
+  --palette-c3d9d4: #2f4a44;
+  --palette-c3dfd1: #294d3b;
+  --palette-c4d1d3: #354447;
+  --palette-c5ae7333: rgba(108, 93, 55, 0.200);
+  --palette-c5d1d4: #344346;
+  --palette-c5d2b5: #435131;
+  --palette-c5d8da: #2f4749;
+  --palette-c6b99c: #5c5035;
+  --palette-c6b99c28: rgba(92, 80, 53, 0.157);
+  --palette-c6d8d6: #314745;
+  --palette-c7b38d: #645333;
+  --palette-c7b890: #635633;
+  --palette-c8ab7310: rgba(107, 89, 55, 0.063);
+  --palette-c8dccf: #2e4837;
+  --palette-c9c3a4: #585334;
+  --palette-c9dbd5: #2f473f;
+  --palette-cbb08a: #645033;
+  --palette-cbd7d9: #324144;
+  --palette-cbdbde: #2d4347;
+  --palette-ccaa87: #644c34;
+  --palette-ccdbd5: #30443c;
+  --palette-d0dcd9: #31423d;
+  --palette-d1c6ac: #564b30;
+  --palette-d2b18030: rgba(101, 81, 52, 0.188);
+  --palette-d2dfdc: #2f423d;
+  --palette-d3c08e: #605432;
+  --palette-d4d7c7: #424632;
+  --palette-d5b08c: #604932;
+  --palette-d5b08c30: rgba(96, 73, 50, 0.188);
+  --palette-d6ae92: #5e4331;
+  --palette-d7e1df: #2f3f3b;
+  --palette-d8cba87a: rgba(88, 76, 45, 0.478);
+  --palette-d9c68d: #5f5331;
+  --palette-d9c68d60: rgba(95, 83, 49, 0.376);
+  --palette-d9c8a30d: rgba(89, 75, 46, 0.051);
+  --palette-d9ccb0: #55482c;
+  --palette-dce7df: #2b3e30;
+  --palette-dfceb0: #54452b;
+  --palette-dfceb010: rgba(84, 69, 43, 0.063);
+  --palette-dfceb021: rgba(84, 69, 43, 0.129);
+  --palette-e1c580a0: rgba(96, 83, 50, 0.627);
+  --palette-e8ede8: #2b372b;
+  --palette-eddfc3: #4a3e26;
+  --palette-ede0c4: #4a3f26;
+  --palette-eee0c5: #4a3d26;
+  --palette-f0deb9: #4c4027;
+  --palette-f0deb950: rgba(76, 64, 39, 0.314);
+  --palette-f2deb2: #4e4228;
+  --palette-ffffff03: rgba(46, 46, 46, 0.012);
+  --palette-ffffff04: rgba(46, 46, 46, 0.016);
+  --palette-ffffff05: rgba(46, 46, 46, 0.020);
+  --palette-ffffff08: rgba(46, 46, 46, 0.031);
+  --palette-ffffff0a: rgba(46, 46, 46, 0.039);
+}
+/* Shared, accessible toggle on both workspace headers. */
+.theme-toggle, .path-page .theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid var(--line-bright);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 10px;
+  line-height: 1.4;
+  white-space: nowrap;
+  min-height: 34px;
+}
+.theme-toggle:hover, .path-page .theme-toggle:hover {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-color: var(--accent);
+  color: var(--text);
+}
+.space-nav-actions { display: flex; align-items: center; gap: 20px; }
+html[data-theme="light"] .universe-background { background: #f1f5f8; }
+html[data-theme="light"] .universe-nebula {
+  background: radial-gradient(ellipse at 78% 28%, #b6d9ea42, transparent 55%), radial-gradient(ellipse at 24% 90%, #d3c7e526, transparent 60%);
+}
+html[data-theme="light"] .sidebar { background: #f5f8fbf5; }
+html[data-theme="light"] .composer,
+html[data-theme="light"] .case-card,
+html[data-theme="light"] .mission-pane,
+html[data-theme="light"] .route-card {
+  box-shadow: 0 12px 35px #21435c09, inset 0 1px #ffffffb3;
+}
+html[data-theme="light"] .space-dialog { background: linear-gradient(135deg, #ffffff, #f0f6fa); }
+html[data-theme="light"] .space-dialog::backdrop { background: #293f5745; }
+html[data-theme="light"] .drawer-overlay,
+html[data-theme="light"] .mobile-overlay { background: #293f5755; }
+html[data-theme="light"] .evidence-drawer,
+html[data-theme="light"] .mission-actions { background: #f8fbfd; }
+html[data-theme="light"] .space-dialog > header { background: #f8fbfdf5; }
+html[data-theme="light"] .route-card { --galaxy-tone: #467987 !important; }
+html[data-theme="light"] .route-card:nth-child(2) { --galaxy-tone: #80619f !important; }
+html[data-theme="light"] .route-card:nth-child(3) { --galaxy-tone: #9b7549 !important; }
+html[data-theme="light"] .route-card:nth-child(4) { --galaxy-tone: #4f7b61 !important; }
+html[data-theme="light"] .route-svg path { stroke: #658a9b; }
+html[data-theme="light"] .route-svg .signal-traveler { stroke: #3d6f78; }
+html[data-theme="light"] .route-svg ellipse { stroke: #52788c; stroke-opacity: .12; }
+html[data-theme="light"] .node-progress circle { stroke: #477c70; }
+html[data-theme="light"] .growth-universe polyline { stroke: #527b8d; stroke-opacity: .4; }
+html[data-theme="light"] .scene-signal { background: #ffffffce; }
+html[data-theme="light"] .scene-caption,
+html[data-theme="light"] .map-axis { color: #647f92; }
+html[data-theme="light"] .hero-terminator {
+  background: linear-gradient(110deg, transparent 40%, #f1f5f815 65%, #f1f5f85c 100%);
+  box-shadow: none;
+}
+html[data-theme="light"] .hero-atmosphere { background: #8bb7d10f; box-shadow: -13px -8px 45px #739ab926, 0 0 80px #9dbbd53b; }
+html[data-theme="light"] .ui-primary,
+html[data-theme="light"] .space-primary,
+html[data-theme="light"] .path-entry a {
+  background: #365c70 !important;
+  border-color: #365c70 !important;
+  color: #ffffff !important;
+}
+html[data-theme="light"] .ui-primary:hover,
+html[data-theme="light"] .space-primary:hover,
+html[data-theme="light"] .path-entry a:hover { background: #294b5e !important; }
+html[data-theme="light"] .task-controls .task-complete { background: #406c61 !important; border-color: #406c61 !important; color: #fff !important; }
+html[data-theme="light"] button:focus-visible,
+html[data-theme="light"] a:focus-visible,
+html[data-theme="light"] summary:focus-visible,
+html[data-theme="light"] input:focus-visible,
+html[data-theme="light"] textarea:focus-visible { outline-color: #476c83; }
+@media (max-width: 700px) {
+  .theme-toggle, .path-page .theme-toggle { padding: 7px; width: 34px; height: 34px; }
+  .theme-toggle > span { display: none; }
+  .space-nav-actions { gap: 12px; }
+  .space-nav-actions .space-back { margin-top: 0; }
+  .topbar-right { gap: 12px; }
+}

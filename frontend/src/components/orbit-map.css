@@ -1,0 +1,134 @@
+.orbital-explorer { margin-top: 18px; --orbit-energy: #cdb98b; --orbit-ink: #bcd1d5; --orbit-guide: #accbd326; }
+.planet-orbit-scene { position: relative; scroll-margin-top: 24px; height: 550px; overflow: hidden; isolation: isolate; border: 1px solid var(--line); border-radius: 18px; background: radial-gradient(ellipse at 48% 45%, #83b9b812, transparent 55%), linear-gradient(150deg, #172b384a, #0a162333); }
+.planet-orbit-scene::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .4; background-image: radial-gradient(circle at 14% 25%, #b3d4e9 0 1px, transparent 1.6px), radial-gradient(circle at 74% 74%, #b3d4e9 0 .7px, transparent 1.3px), radial-gradient(circle at 28% 82%, #b3d4e9 0 1px, transparent 1.5px); background-size: 153px 157px, 193px 211px, 239px 193px; }
+.orbit-scene-header { position: absolute; z-index: 8; top: 21px; left: 23px; right: 22px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+.orbit-scene-header > div { display: grid; gap: 7px; min-width: 0; }
+.orbit-scene-header > div > span { font-size: 8px; color: var(--muted); letter-spacing: 2.5px; }
+.orbit-scene-header strong { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; color: var(--text-secondary); font-weight: 400; letter-spacing: .5px; }
+.path-page .orbit-motion-toggle { font-size: 8px; padding: 7px 9px; background: var(--surface); color: var(--muted); border-color: var(--line); }
+.action-orbit-lines { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+.action-orbit-lines ellipse { fill: none; stroke: var(--orbit-guide); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.action-orbit-lines ellipse:nth-child(2) { stroke-dasharray: 2 9; opacity: .5; }
+.action-orbit-lines path { fill: none; stroke: var(--orbit-guide); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.orbit-planet-core { width: 220px; height: 220px; position: absolute; left: 50%; top: 53%; transform: translate(-50%, -50%); pointer-events: none; }
+.orbit-planet-core > img { width: 100%; height: 100%; position: relative; z-index: 2; filter: drop-shadow(12px 17px 18px #020d1c50); }
+.planet-soft-aura { position: absolute; inset: 14%; border-radius: 50%; box-shadow: -12px -7px 45px #9cded72b, 0 0 85px #8cbedb14; }
+.planet-ground-shadow { position: absolute; bottom: 5%; left: 28%; width: 48%; height: 7%; border-radius: 50%; background: #030c1b44; filter: blur(10px); }
+.planet-complete-halo { position: absolute; inset: 9%; border-radius: 50%; border: 1px solid transparent; transition: box-shadow 1s, border-color 1s; }
+.orbit-stage-complete .planet-complete-halo { border-color: #d0d5ab9c; box-shadow: 0 0 30px #c1ddad3b, inset 0 0 25px #c1ddad2b; }
+.orbit-stage-complete .planet-soft-aura { box-shadow: 0 0 80px #acd9a72b; }
+.orbit-object { position: absolute; width: 120px; transform: translate(-50%, -38px); z-index: 5; }
+.orbit-object:has(:focus-visible), .orbit-object:hover { z-index: 9; }
+.path-page .orbit-object-button { position: relative; width: 100%; display: flex; flex-direction: column; gap: 0; border: 0; border-radius: 12px; background: transparent; padding: 0 2px 7px; color: var(--text-secondary); }
+.path-page .orbit-object-button:hover { background: color-mix(in srgb, var(--surface) 85%, transparent); }
+.artifact-visual { width: 76px; height: 76px; position: relative; display: block; transition: filter .7s, transform .4s; filter: saturate(.65) brightness(.87); }
+.artifact-art { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(2px 6px 4px #03101b4d); }
+.artifact-art .artifact-ground { fill: #08152333; }
+.artifact-light { fill: #768d9c; transition: fill .8s; }
+.artifact-signal { stroke: var(--orbit-energy); opacity: 0; transition: opacity .8s; }
+.artifact-wing { transform-box: fill-box; transition: transform 1.2s cubic-bezier(.2,.8,.2,1); }
+.wing-left { transform-origin: right center; transform: scaleX(.42); }
+.wing-right { transform-origin: left center; transform: scaleX(.42); }
+.artifact-module { opacity: .35; transition: opacity 1s; }
+.artifact-core { transition: filter 1s; }
+.artifact-number { position: absolute; top: 7px; right: 15px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 7px; background: var(--surface); border: 1px solid var(--line-bright); color: var(--muted); }
+.orbit-object-button > strong { font-size: 10px; line-height: 1.6; font-weight: 400; width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: balance; }
+.orbit-object-button > small { margin-top: 5px; font-size: 7px; color: var(--muted); white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+.orbit-object-button > small > i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
+.artifact-radiance { pointer-events: none; position: absolute; width: 70px; height: 70px; top: 3px; border-radius: 50%; opacity: 0; transition: opacity .8s; background: radial-gradient(ellipse, #e1d7a62e, transparent 70%); }
+.object-selected .artifact-visual, .orbit-object-button:hover .artifact-visual { transform: translateY(-3px); filter: saturate(1) brightness(1.15); }
+.object-selected .orbit-object-button > strong { color: var(--text); }
+.object-selected .artifact-number { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent); }
+.object-selected .orbit-object-button::after { content: ''; position: absolute; width: 15px; height: 2px; background: var(--accent); bottom: 0; border-radius: 2px; }
+.state-completed .artifact-visual { filter: saturate(1.05) brightness(1.12); }
+.state-completed .artifact-radiance { opacity: 1; }
+.state-completed .artifact-light { fill: #f5dda4; filter: drop-shadow(0 0 3px #f4db8e); }
+.state-completed .artifact-wing { transform: scaleX(1); }
+.state-completed .artifact-signal { opacity: 1; }
+.state-completed .artifact-module { opacity: 1; }
+.state-completed .artifact-core { filter: drop-shadow(0 0 5px #b8ebde); }
+.state-completed .artifact-number { color: var(--orbit-energy); border-color: color-mix(in srgb, var(--orbit-energy) 65%, transparent); }
+.state-completed .orbit-object-button > small { color: var(--orbit-energy); }
+.state-in_progress .artifact-light { fill: #a0dce0; animation: artifact-breathe 2.8s ease-in-out infinite; }
+.state-blocked .artifact-light { fill: #edb56c; }
+.state-blocked .orbit-object-button > small { color: #d8a86b; }
+.path-page .orbit-help-beacon { position: absolute; right: 8px; top: 44px; padding: 4px; border-radius: 50%; color: #d8a86b; background: var(--surface); border-color: #d8a86b66; }
+.state-skipped .artifact-visual { filter: saturate(.15); opacity: .65; }
+.state-skipped .orbit-object-button > strong { text-decoration: line-through; text-decoration-color: var(--muted); }
+.object-just-lit .artifact-radiance { animation: artifact-arrival 2.3s ease-out both; }
+.object-just-lit .artifact-visual { animation: artifact-build 1s ease-out both; }
+.orbit-scene-footer { position: absolute; bottom: 19px; left: 23px; right: 23px; display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 7px; pointer-events: none; }
+.orbit-scene-footer > span:first-child { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+.orbit-no-tasks { position: absolute; bottom: 67px; text-align: center; width: 100%; color: var(--muted); font-size: 10px; }
+.orbit-route-heading { display: flex; justify-content: space-between; align-items: center; margin: 25px 0 8px; font-size: 10px; color: var(--text-secondary); }
+.orbit-route-heading small { font-size: 8px; color: var(--muted); display: flex; gap: 5px; align-items: center; }
+.planet-route-rail { position: relative; display: flex; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--line-bright) transparent; padding: 7px 0 17px; }
+.planet-route-rail::before { content: ''; position: absolute; left: 50px; right: 50px; top: 48px; height: 1px; background: linear-gradient(90deg, transparent, var(--line-bright) 10%, var(--line-bright) 90%, transparent); }
+.path-page .planet-route-stop { flex: 1 0 112px; min-width: 0; max-width: 220px; padding: 0 5px 10px; display: flex; flex-direction: column; gap: 5px; border: 0; border-radius: 8px; background: transparent; position: relative; }
+.path-page .planet-route-stop:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.rail-planet { position: relative; width: 76px; height: 76px; display: block; transition: transform .4s; }
+.rail-planet img { width: 100%; height: 100%; filter: saturate(.55); transition: filter .4s; }
+.selected .rail-planet { transform: scale(1.12); }
+.selected .rail-planet img { filter: saturate(1) drop-shadow(0 0 12px #a1d5c82b); }
+.rail-planet > i { display: grid; place-items: center; width: 17px; height: 17px; position: absolute; bottom: 8px; right: 5px; background: var(--surface); border: 1px solid var(--accent); color: var(--accent); border-radius: 50%; }
+.planet-route-stop > small { font-size: 7px; color: var(--muted); }
+.planet-route-stop > strong { color: var(--text-secondary); font-weight: 400; font-size: 9px; line-height: 1.7; max-width: 150px; }
+.planet-route-stop.selected > small { color: var(--accent); }
+.planet-route-stop.selected::after { content: ''; width: 20px; height: 2px; background: var(--accent); position: absolute; bottom: 0; border-radius: 2px; }
+.node-planet img, .orbit-node.is-here .node-planet img { filter: none; }
+html[data-theme="light"] .orbital-explorer { --orbit-energy: #887044; --orbit-guide: #496f8a29; }
+html[data-theme="light"] .planet-orbit-scene { background: radial-gradient(ellipse at 48% 45%, #b2d2d02e, transparent 65%), linear-gradient(145deg, #ffffffb3, #edf4fa99); box-shadow: inset 0 1px #fff, 0 18px 50px #56718d08; }
+html[data-theme="light"] .planet-orbit-scene::before { opacity: .18; filter: brightness(.5); }
+html[data-theme="light"] .planet-soft-aura { box-shadow: -10px -7px 40px #729baf22, 0 0 70px #aec8db18; }
+html[data-theme="light"] .orbit-planet-core > img { filter: drop-shadow(10px 16px 15px #395b7d2e); }
+html[data-theme="light"] .artifact-visual { filter: saturate(.8); }
+html[data-theme="light"] .state-completed .artifact-visual { filter: saturate(1.1) brightness(1.04); }
+html[data-theme="light"] .state-completed .artifact-radiance { background: radial-gradient(ellipse, #bd9d5a25, transparent 70%); }
+html[data-theme="light"] .state-blocked .orbit-object-button > small, html[data-theme="light"] .orbit-help-beacon { color: #926023; }
+@keyframes artifact-breathe { 50% { opacity: .3; } }
+@keyframes artifact-arrival { 0% { transform: scale(.5); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes artifact-build { 0% { transform: translateY(4px) scale(.93); } 45% { transform: translateY(-8px) scale(1.07); } 100% { transform: translateY(0) scale(1); } }
+@media (min-width: 1500px) { .planet-orbit-scene { height: 600px; } .orbit-planet-core { width: 245px; height: 245px; } .orbit-world-label { top: calc(48% + 97px); } .artifact-visual { width: 88px; height: 88px; } .orbit-object { width: 136px; transform: translate(-50%, -44px); } .orbit-object-button > strong { font-size: 10px; } }
+@media (max-width: 1100px) and (min-width: 900px) { .orbit-object { width: 102px; transform: translate(-50%, -32px); } .artifact-visual { width: 64px; height: 64px; } .orbit-planet-core { width: 185px; height: 185px; } .orbit-world-label { top: calc(48% + 73px); width: 150px; } .orbit-object-button > strong { font-size: 8px; } .orbit-object-button > small { font-size: 6px; } .orbit-scene-header { left: 17px; right: 17px; } .orbit-scene-footer { left: 17px; right: 17px; } .orbit-scene-footer > span:last-child { display: none; } }
+@media (max-width: 600px) {
+  .orbital-explorer { margin-top: 16px; }
+  .planet-orbit-scene { height: 520px; border-radius: 14px; }
+  .orbit-scene-header { left: 15px; right: 15px; top: 18px; }
+  .orbit-scene-header strong { font-size: 9px; max-width: 230px; }
+  .orbit-scene-header > div > span { font-size: 7px; }
+  .path-page .orbit-motion-toggle { padding: 7px; }
+  .orbit-motion-toggle > span { display: none; }
+  .orbit-planet-core { width: 176px; height: 176px; }
+  .orbit-world-label { top: calc(48% + 69px); width: 140px; }
+  .path-page .orbit-world-label h2 { font-size: 12px; margin-top: 7px; }
+  .orbit-world-label > small { font-size: 6px; letter-spacing: 0; }
+  .orbit-object { width: 91px; transform: translate(-50%, -31px); }
+  .artifact-visual { width: 62px; height: 62px; }
+  .orbit-object-button > strong { font-size: 9px; }
+  .orbit-object-button > small { font-size: 6px; gap: 3px; }
+  .artifact-number { top: 3px; right: 8px; width: 16px; height: 16px; }
+  .orbit-scene-footer { bottom: 17px; left: 15px; right: 15px; font-size: 7px; }
+  .orbit-scene-footer > span:last-child { display: none; }
+  .planet-route-stop > strong { font-size: 9px; }
+  .path-page .planet-route-stop { flex-basis: 100px; }
+  .orbit-route-heading small { font-size: 7px; }
+  .path-page .orbit-help-beacon { top: 32px; right: 2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbital-explorer *, .orbital-explorer *::after { animation: none !important; transition: none !important; }
+}
+.artifact-return-signal { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.artifact-return-signal line { stroke: var(--orbit-energy); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-dasharray: 7 93; animation: artifact-delivery 1.5s ease-in-out both; }
+.state-in_progress .artifact-radiance { opacity: .65; background: radial-gradient(ellipse, #86c7d02e, transparent 70%); animation: artifact-breathe 2.8s ease-in-out infinite; }
+@keyframes artifact-delivery { 0% { stroke-dashoffset: 100; opacity: 0; } 20% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .artifact-return-signal { display: none; } }
+
+@media (max-width: 360px) {
+  .orbit-object { width: 80px; transform: translate(-50%, -28px); }
+  .artifact-visual { width: 56px; height: 56px; }
+  .orbit-scene-header strong { max-width: 180px; }
+}
+
+.object-north .orbit-object-button > strong { position: absolute; bottom: calc(100% + 16px); left: 0; padding-inline: 2px; }
+.object-north .orbit-object-button > small { position: absolute; bottom: calc(100% + 2px); margin: 0; }
+.object-north.object-selected .orbit-object-button::after { bottom: auto; top: -6px; }

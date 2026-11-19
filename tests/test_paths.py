@@ -202,7 +202,7 @@ class PathTests(unittest.IsolatedAsyncioTestCase):
         self.service.settings = Settings(data_dir=self.settings.data_dir, path_candidate_tokens=100)
         run = await self.create()
         self.assertEqual(run["stop_reason"], "token_budget")
-        self.assertEqual(self.retrieval.get(self.source_id)["limits"]["tokens"], 60000)
+        self.assertEqual(self.retrieval.get(self.source_id)["limits"]["tokens"], 100000)
 
     async def test_same_operation_commit_is_idempotent(self):
         run = await self.selected()
