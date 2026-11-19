@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { api } from './api'
 import PathsPage, { Dialog, PathEntry } from './PathsPage'
+import SharedCasePage from './SharedCasePage'
 import { JourneySteps, ObservatoryScene, Starfield } from './components/Universe'
 import { ThemeToggle } from './ThemeProvider'
 import { Button } from './components/ui/button'
@@ -118,7 +119,7 @@ function NewRun({ health }: { health?: Health }) {
     </main>
     <ObservatoryScene />
     </div>
-    <div className="observatory-principles">{[{icon: BookOpen, number: '01', title: '让经历成为坐标', text: '检索知乎真实分享，每条线索都有来源。'}, {icon: Orbit, number: '02', title: '让选择多一种可能', text: '比较不同方向，用小实验验证适合自己的路。'}, {icon: StarIcon, number: '03', title: '让改变发生在今天', text: '把远方拆成小行动，记录每一次真实进展。'}].map(item => <div key={item.number}><span>{item.number}</span><item.icon size={18}/><h2>{item.title}</h2><p>{item.text}</p></div>)}</div>
+    <div className="observatory-principles">{[{icon: BookOpen, number: '01', title: '让经历成为坐标', text: '检索知乎分享与授权的匿名经历，每条线索都有来源。'}, {icon: Orbit, number: '02', title: '让选择多一种可能', text: '比较不同方向，用小实验验证适合自己的路。'}, {icon: StarIcon, number: '03', title: '让改变发生在今天', text: '把远方拆成小行动，记录每一次真实进展。'}].map(item => <div key={item.number}><span>{item.number}</span><item.icon size={18}/><h2>{item.title}</h2><p>{item.text}</p></div>)}</div>
     <footer className="observatory-footer"><span>以真实经历为起点，以你的选择为方向。</span><span>LIFELAB / EXPLORE YOUR POSSIBILITIES</span></footer>
   </div>
 }
@@ -168,7 +169,7 @@ function Clarification({ run }: { run: Run }) {
 
 function CaseCard({ item, onEvidence }: { item: Case; onEvidence: (item: Case) => void }) {
   return <article className="case-card">
-    <div className="case-source"><span className="zhihu-symbol">知</span><span>{item.source.author || '知乎内容作者'}</span>
+    <div className="case-source"><span className="zhihu-symbol">{item.source.source_type==='lifelab'?'人':'知'}</span><span>{item.source.author || '知乎内容作者'}</span>
       <span className="source-nature">{item.source_nature === 'self_report' ? '作者自述' : item.source_nature === 'third_party' ? '他人转述' : '信息待核实'}</span>
     </div>
     <h3>{item.title}</h3>
@@ -232,7 +233,7 @@ function EvidenceDrawer({ item, run, close }: { item: Case; run: Run; close: () 
       <div className="drawer-heading"><span><BookOpen size={18} />来源与字段证据</span>
         <Button ref={closeRef} aria-label="关闭证据详情" variant="ghost" size="icon" onClick={close}><X size={19} /></Button></div>
       <h2>{item.title}</h2>
-      <p className="muted">以下引用来自已保存的知乎搜索摘要。</p>
+      <p className="muted">{item.source.source_type==='lifelab'?'以下引用来自用户审阅并授权分享的匿名经历。':'以下引用来自已保存的知乎搜索摘要。'}</p>
       {item.matching && <section className="score-evidence"><h3>匹配评分与引用</h3>
         <p className="muted">总匹配分 {item.matching.score}，评分字段覆盖 {item.matching.field_coverage}%。</p>
         {item.matching.dimensions.filter(dimension => dimension.weight > 0).map(dimension => <div className="match-dimension" key={dimension.dimension}>
@@ -251,7 +252,7 @@ function EvidenceDrawer({ item, run, close }: { item: Case; run: Run; close: () 
       {item.additional_evidence?.map((fact, index) => <div className="evidence-field" key={'additional-' + index}>
         <h3>{factLabels[fact.field]} · 来源补充描述</h3><p>{fact.value}</p><blockquote>{fact.quote}</blockquote>
       </div>)}
-      <a className="source-link" href={item.source.url} target="_blank" rel="noreferrer">打开知乎来源<ExternalLink size={15} /></a>
+      <a className="source-link" href={item.source.url} target="_blank" rel="noreferrer">{item.source.source_type==='lifelab'?'打开匿名案例':'打开知乎来源'}<ExternalLink size={15} /></a>
     </section>
   </div>
 }
@@ -274,7 +275,7 @@ function TraceDetails({ event, run }: { event: TraceEvent; run: Run }) {
     {query && event.event_type === 'search.completed' && <div className="trace-sources">
       {run.hits.filter(hit => hit.query_id === query.id).map(hit => <details key={hit.id}>
         <summary>{hit.source.title}</summary><p>{hit.text || '本条未返回摘要'}</p>
-        <a href={hit.source.url} target="_blank" rel="noreferrer">查看知乎来源<ExternalLink size={11} /></a>
+        <a href={hit.source.url} target="_blank" rel="noreferrer">{hit.source.source_type==='lifelab'?'查看匿名案例':'查看知乎来源'}<ExternalLink size={11} /></a>
       </details>)}
     </div>}
     {explanation && <p>{explanation}</p>}
@@ -438,8 +439,9 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
   const exploring = location.pathname.startsWith('/explore/')
-  const history = useQuery({ queryKey: ['history'], queryFn: api.list, refetchInterval: 10000, enabled: !exploring })
-  const health = useQuery({ queryKey: ['health'], queryFn: api.health, refetchInterval: 15000, enabled: !exploring })
+  const sharing=location.pathname.startsWith('/shared-cases/')
+  const history = useQuery({ queryKey: ['history'], queryFn: api.list, refetchInterval: 10000, enabled: !exploring && !sharing })
+  const health = useQuery({ queryKey: ['health'], queryFn: api.health, refetchInterval: 15000, enabled: !exploring && !sharing })
   useEffect(() => { setMenuOpen(false); window.scrollTo({top: 0}) }, [location.pathname])
   useEffect(() => {
     if (!menuOpen) return
@@ -452,6 +454,7 @@ export default function App() {
     return () => {window.removeEventListener('keydown', close); document.body.style.overflow = overflow; previous?.focus()}
   }, [menuOpen])
   if (exploring) return <><Starfield/><Routes><Route path="/explore/:runId" element={<PathsPage />} /></Routes></>
+  if (sharing) return <><Starfield/><Routes><Route path="/shared-cases/:caseId" element={<SharedCasePage/>}/></Routes></>
   return <><Starfield/><div className="app-shell">
     {menuOpen && <button className="mobile-overlay" aria-label="关闭导航" onClick={() => setMenuOpen(false)} />}
     <div id="main-navigation" className={menuOpen ? 'sidebar-wrap open' : 'sidebar-wrap'}><Sidebar history={history.data || []} close={() => setMenuOpen(false)} /></div>

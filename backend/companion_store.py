@@ -7,6 +7,7 @@ from .path_store import PathConflict
 class CompanionStore:
     def __init__(self, paths):
         self.paths = paths
+        self.web_configured = False
         self.store = paths.store
         with self.store.connection() as db:
             db.executescript('''
@@ -95,7 +96,7 @@ class CompanionStore:
             old = db.execute('SELECT data FROM companion_turns WHERE session_id=? AND client_id=?', (session_id, body.client_message_id)).fetchone()
             if old:
                 item = json.loads(old[0])
-                if item['input'] != body.model_dump():
+                if {'web_search':'auto', **item['input']} != body.model_dump():
                     raise PathConflict('这条消息已提交，重试请使用相同内容')
                 return item, False
             session = self.get('sessions', session_id, db)
@@ -136,13 +137,25 @@ class CompanionStore:
         self.transaction(publish)
 
     def public_turn(self, turn):
-        return {key: value for key, value in turn.items() if key not in ('model_result', 'calls', 'decisions', 'clock_started') } | {'actions': self.actions(turn['id'])}
+        result = {key: value for key, value in turn.items() if key not in ('model_result', 'calls', 'decisions', 'clock_started', 'web', 'answer_web_evidence', 'answer_web_inventory')}
+        web = turn.get('web') or {}
+        supplied = {s['id'] for s in turn.get('answer_web_evidence',[])}
+        cited = {s['source_id'] for s in (turn.get('reply') or {}).get('web_citations',[])}
+        result['web'] = {'status':web.get('status','pending' if turn['status']=='running' else 'skipped'),
+            'warnings':web.get('warnings',[]),'queries':web.get('queries',[]),'rounds':web.get('rounds',0),
+            'reads':len(web.get('reads',[])),'cache_hits':web.get('cache_hits',0),
+            'sources':[{k:s[k] for k in ('id','title','url','host','published_at','retrieved_at','read_status','kind','parent_url')}
+                | {'in_answer_context':s['id'] in supplied,'is_cited':s['id'] in cited,
+                   'decision_reason':s.get('decision_reason'),'matched':s.get('relevance',{}).get('matched',[])}
+                for s in web.get('sources',[])]}
+        return result | {'actions': self.actions(turn['id'])}
 
     def snapshot(self, session_id, before=None):
         session = self.get('sessions', session_id)
         page = self.turns(session_id, before=before)
         return {'session': {key: session[key] for key in ('id', 'path_id', 'mode', 'sequence')},
-                **page, 'turns': [self.public_turn(turn) for turn in page['turns']], 'memories': self.memories(session['path_id'])}
+                **page, 'turns': [self.public_turn(turn) for turn in page['turns']], 'memories': self.memories(session['path_id']),
+                'capabilities':{'web_search':self.web_configured,'provider':'tavily'}}
 
     def active(self):
         with self.store.connection() as db:

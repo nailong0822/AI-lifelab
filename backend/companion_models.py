@@ -2,6 +2,7 @@
 from typing import Literal
 from pydantic import Field
 from .models import Contract
+from .web_models import WebCitation
 
 Mode = Literal['auto', 'listen', 'solve']
 
@@ -11,6 +12,7 @@ class CompanionMessage(Contract):
     mode: Mode = 'auto'
     stage_id: str | None = None
     task_id: str | None = None
+    web_search: Literal['auto', 'off'] = 'auto'
 
 class CompanionAction(Contract):
     kind: Literal['progress', 'revision', 'memory', 'achievement']
@@ -31,6 +33,8 @@ class CompanionReply(Contract):
     followups: list[str] = Field(default_factory=list, max_length=3)
     evidence_ids: list[str] = Field(default_factory=list, max_length=4)
     actions: list[CompanionAction] = Field(default_factory=list, max_length=2)
+    web_citations: list[WebCitation] = Field(default_factory=list, max_length=4)
+    web_answer_status: Literal['not_used','supported','insufficient'] = 'not_used'
 
 class ActionDecision(Contract):
     approve: bool

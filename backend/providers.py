@@ -28,6 +28,15 @@ def estimate_tokens(text: str) -> int:
 
 
 class DeepSeekModel:
+    async def choose_tool(self, tools: list[dict], instruction: str, payload: dict, max_tokens: int):
+        model = create_chat_model(max_retries=0, timeout=30)
+        response = await model.bind_tools(tools, tool_choice='auto', parallel_tool_calls=False).bind(
+            extra_body={'thinking': {'type': 'disabled'}}, max_tokens=max_tokens,
+        ).ainvoke([('system', instruction), ('human', json.dumps(payload, ensure_ascii=False))])
+        if response.invalid_tool_calls or len(response.tool_calls) > 1:
+            raise ProviderError('工具调用结构不正确，本轮没有执行联网')
+        return (response.tool_calls[0] if response.tool_calls else None), response.usage_metadata
+
     async def generate(self, schema, instruction: str, payload: dict, max_tokens: int):
         model = create_chat_model(max_retries=0, timeout=45)
         messages = [

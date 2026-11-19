@@ -14,7 +14,7 @@ export interface Profile {
   observed_outcomes: Fact[]
   unknowns: string[]
 }
-export interface Source { id: string; title: string; url: string; author: string; content_type: string }
+export interface Source { id: string; title: string; url: string; author: string; content_type: string; source_type?:'zhihu'|'lifelab' }
 export interface Hit { id: string; query_id: string; source_id: string; source: Source; text: string }
 export interface Evidence { value: string; quote: string; hit_id: string; evidence_scope: string }
 export interface MatchDimension {

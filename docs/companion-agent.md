@@ -8,9 +8,10 @@
 
 ## 工作流
 
-`load → respond → validate → publish → automatic → wait(interrupt) → apply`
+`load → plan_web → [search_web] → respond → validate → publish → automatic → wait(interrupt) → apply`
 
 - load 读取当前真实计划、任务、前置依赖、进度、关联任务及有上限的近期对话与原话摘要。
+- plan_web 通过 DeepSeek tool calling 按问题决定是否调用通用 web_search；未配置、关闭或安全分流时跳过。搜索、原文读取、缺口补搜和引用校验详见 [Web Search 说明](web-search.md)。
 - respond 使用 DeepSeek Flash 生成结构化回应、最多一个小行动、可选引用及操作提案。通常一次调用，仅允许一次结构修复。
 - validate 校验原话引用、真实任务ID、完成语义及用户禁止操作的要求。假设、否定、他人成果不自动写成用户完成。
 - publish 幂等保存助手消息和操作。明确、唯一关联且满足条件的完成反馈可自动更新，显示用户自述依据并提供撤销。
@@ -30,12 +31,12 @@
 
 只保存用户确认的偏好、已有能力和现实约束，保留来源消息。修改或删除记忆会清除相关摘要，原来源轮次不再进入模型近期上下文；聊天记录仍可回看。当前 SQLite 为本地普通数据库，不宣称加密保存。
 
-预算独立于路径和检索，默认每轮累计 12,000 Token、60秒活跃时间。普通输出最多1800 Token，“一起想办法”最多2500 Token。模型失败或中断时保守保留已预留用量；重试不重置累计预算。人工等待不持续消耗模型预算。达到本轮预算可缩短内容后发送新消息。
+预算独立于路径和检索，普通每轮累计 80,000 Token、60秒活跃时间。普通输出最多1800 Token，“一起想办法”最多2500 Token；实际联网的消息默认提升至至少100,000 Token、90秒，最终答复最多3200 Token。工具决策、缺口分析和答复累计计入本轮用量。模型失败或中断时保守保留已预留用量；重试不重置累计预算。人工等待不持续消耗模型预算。达到本轮预算可缩短内容后发送新消息。
 
 可选 `.env` 配置：
 
 ```dotenv
-COMPANION_TOKEN_BUDGET=12000
+COMPANION_TOKEN_BUDGET=80000
 COMPANION_TIME_BUDGET=60
 ```
 

@@ -45,7 +45,7 @@ def source_context(source):
                                     "value": fact["value"], "quote": fact["quote"],
                                     "source": case["source"], "hit_id": fact["hit_id"]}
             facts[field] = {"value": fact["value"], "evidence_id": evidence_id}
-        cases.append({"id": case["id"], "title": case["title"], "facts": facts,
+        cases.append({"id": case["id"], "title": case["title"], "facts": facts, "source":case["source"],
                       "matching": {key: (case.get("matching") or {}).get(key) for key in ("score", "tier")},
                       "differences": case.get("background_differences", [])})
     return catalog, cases

@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from .config import Settings
-from .ranking import analysis_stats, rank_key
+from .ranking import analysis_stats, coverage_for, rank_key
 
 
 def uid() -> str:
@@ -99,7 +99,65 @@ class Store:
             row = db.execute("SELECT data FROM runs WHERE id=?", (run_id,)).fetchone()
         if row is None:
             raise KeyError(run_id)
-        return json.loads(row[0])
+        run=json.loads(row[0])
+        return self.filter_shared(run)
+
+    def path_for_retrieval(self,run_id):
+        with self.connection() as db:
+            row=db.execute('SELECT id FROM path_runs WHERE retrieval_run_id=?',(run_id,)).fetchone()
+        return row[0] if row else None
+
+    def shared_available(self, source):
+        if source.get('source_type')!='lifelab':
+            return True
+        with self.connection() as db:
+            row=db.execute('SELECT revision FROM experience_public WHERE id=?',(source['case_id'],)).fetchone()
+        return bool(row and row[0]==source['revision'])
+
+    def filter_shared(self,run):
+        invalid={h['source_id'] for h in run['hits'] if not self.shared_available(h['source'])}
+        if not invalid:
+            return run
+        run['hits']=[h for h in run['hits'] if h['source_id'] not in invalid]
+        run['cases']=[c for c in run['cases'] if c['source_id'] not in invalid]
+        run['coverage']=coverage_for(run['cases'],run.get('profile'))
+        if run.get('report'):
+            run['report']['case_ids']=[c['id'] for c in sorted(run['cases'],key=rank_key)]
+            run['report']['top_case_ids']=run['report']['case_ids'][:5]
+            run['report']['summary']='部分内部案例分享已更新或撤回，当前可查看 '+str(len(run['cases']))+' 个案例。'
+            run['report']['coverage']=run['coverage']
+            run['report']['stats'].update(analysis_stats(run))
+            run['report']['result_status']='partial'
+            run['result_status']='partial'
+        return run
+
+    def add_shared_hits(self,run_id,records):
+        from .ranking import FACT_LABELS
+        from .providers import clean_text
+        def save(run,db):
+            if run.get('internal_lookup'):
+                return
+            for record in records:
+                # Recheck consent under the write transaction.
+                current=db.execute('SELECT revision FROM experience_public WHERE id=?',(record['id'],)).fetchone()
+                if not current or current[0]!=record['revision']:
+                    continue
+                doc=record['document']
+                source_id='lifelab:'+record['id']+':'+str(record['revision'])
+                hit_id=hashlib.sha256((run_id+source_id).encode()).hexdigest()[:24]
+                source={'id':source_id,'title':doc['title'],'url':'/shared-cases/'+record['id'],
+                        'author':'人生实验室匿名分享','content_type':'experience','source_type':'lifelab',
+                        'case_id':record['id'],'revision':record['revision']}
+                text='\n'.join(FACT_LABELS[k]+'：'+v for k,v in doc['fields'].items() if v.strip())
+                hit={'id':hit_id,'source_id':source_id,'query_id':'internal','source':source,'text':clean_text(text),
+                     'raw_text':text,'retrieved_at':time.time()}
+                db.execute('INSERT OR IGNORE INTO sources VALUES(?,?)',(source_id,encode(source)))
+                db.execute('INSERT OR IGNORE INTO search_hits VALUES(?,?,?,?)',(hit_id,run_id,source_id,encode(hit)))
+                if not any(h['id']==hit_id for h in run['hits']):
+                    run['hits'].append(hit)
+            run['internal_lookup']=True
+        self.mutate(run_id,save,event_type='internal.search_completed',node='search',
+                    title='内部案例召回已完成，与知乎来源共同核验',payload={'candidates':len(records)})
 
     def snapshot(self, run_id: str) -> dict:
         run = self.get(run_id)

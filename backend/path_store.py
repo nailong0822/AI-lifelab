@@ -36,7 +36,10 @@ class PathStore:
             row = db.execute("SELECT data FROM path_runs WHERE id=?", (run_id,)).fetchone()
         if row is None:
             raise KeyError(run_id)
-        return json.loads(row[0])
+        run=json.loads(row[0])
+        run['source_cases']=[c for c in run['source_cases'] if self.store.shared_available(c.get('source',{}))]
+        run['evidence_catalog']={k:v for k,v in run['evidence_catalog'].items() if self.store.shared_available(v.get('source',{}))}
+        return run
 
     def for_retrieval(self, retrieval_id: str) -> dict | None:
         with self.store.connection() as db:

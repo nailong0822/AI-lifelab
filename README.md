@@ -77,9 +77,9 @@ npm run build
 
 自动化测试使用可控模型与搜索响应，覆盖澄清恢复、预算停止、搜索重试、证据引用、取消、重启恢复和 SSE 事件重放；路径 Agent 另覆盖候选选择、阶段推进、进度保存、版本冲突、调整确认、切换方向与新操作派发前的重启恢复。真实服务使用本地配置及虚构测试场景独立联调。
 
-随航伙伴另覆盖进度记录与撤销、人工确认、个人记忆修改与删除、消息幂等、重启恢复、预算停止和路径调整交接。伙伴只使用当前路径保存的资料，不执行代码或自行联网检索；任务完成状态来自用户反馈。
+随航伙伴另覆盖进度记录与撤销、人工确认、个人记忆修改与删除、消息幂等、重启恢复、预算停止和路径调整交接。可选配置 `TAVILY_API_KEY` 接入通用 Web Search：模型按问题动态调用搜索工具，按需读取网页和 PDF，展示原文引文、读取状态与搜索 Trace。普通聊天不强制搜索；工具有两轮、四条查询、四个正文读取的上限。未配置密钥时仍可聊天，界面明确提示。工具不能执行代码，联网资料不能代替用户的任务完成反馈。详见 [Web Search 配置与工作流](docs/web-search.md)。
 
-详细节点设计参见 [工作流评审稿](docs/retrieval-agent-workflow.md) 和 [情感陪伴 Agent 开发说明](docs/companion-agent.md)。随航伙伴默认每轮预算为 12,000 tokens、60 秒，可分别通过 `COMPANION_TOKEN_BUDGET` 和 `COMPANION_TIME_BUDGET` 调整，独立于检索与路径规划预算。
+详细节点设计参见 [工作流评审稿](docs/retrieval-agent-workflow.md) 和 [情感陪伴 Agent 开发说明](docs/companion-agent.md)。随航伙伴默认每轮预算为 80,000 tokens、60 秒，可分别通过 `COMPANION_TOKEN_BUDGET` 和 `COMPANION_TIME_BUDGET` 调整，独立于检索与路径规划预算。
 
 ## 模型环境
 
@@ -115,3 +115,9 @@ print(response.content)
 支持 `model.ainvoke(...)` 异步调用和 `model.bind_tools(...)` 工具绑定。
 
 官方接入说明见 [DeepSeek API 文档](https://api-docs.deepseek.com/)。
+
+## 探索经历案例
+
+在太空探索页点击“经历复盘”，选择实际结果并填写反馈，可生成私人案例草稿。核对、编辑并确认匿名分享后，新的检索任务会同时查找知乎与内部案例。支持撤回分享，来源详情可打开匿名案例页面。功能使用现有 SQLite 与 DeepSeek，启动后自动创建数据表，无需新增依赖。
+
+工作流、授权和预算配置见 [探索经历案例](docs/experience-cases.md)。当前继续采用本地单用户访问方式。

@@ -21,8 +21,17 @@ class Settings:
     path_candidate_tokens: int = 80_000
     path_plan_tokens: int = 80_000
     path_revision_tokens: int = 80_000
-    companion_tokens: int = 12_000
+    companion_tokens: int = 80_000
     companion_seconds: float = 60
+    companion_web_tokens: int = 100_000
+    companion_web_seconds: float = 90
+    web_search_seconds: float = 40
+    web_evidence_tokens: int = 10000
+    web_context_tokens: int = 18000
+    experience_tokens: int = 80000
+    experience_seconds: float = 180
+    web_cache_seconds: int = 1800
+    tavily_key: str = field(default='', repr=False)
     deepseek_key: str = field(default="", repr=False)
     zhihu_secret: str = field(default="", repr=False)
 
@@ -36,8 +45,17 @@ class Settings:
             path_candidate_tokens=int(values.get("PATH_CANDIDATE_TOKEN_BUDGET") or 80_000),
             path_plan_tokens=int(values.get("PATH_PLAN_TOKEN_BUDGET") or 80_000),
             path_revision_tokens=int(values.get("PATH_REVISION_TOKEN_BUDGET") or 80_000),
-            companion_tokens=int(values.get("COMPANION_TOKEN_BUDGET") or 12_000),
+            companion_tokens=int(values.get("COMPANION_TOKEN_BUDGET") or 80_000),
             companion_seconds=float(values.get("COMPANION_TIME_BUDGET") or 60),
+            companion_web_tokens=int(values.get('COMPANION_WEB_TOKEN_BUDGET') or 100_000),
+            companion_web_seconds=float(values.get('COMPANION_WEB_TIME_BUDGET') or 90),
+            web_search_seconds=float(values.get('WEB_SEARCH_TIME_BUDGET') or 40),
+            web_evidence_tokens=int(values.get('WEB_EVIDENCE_TOKEN_BUDGET') or 10000),
+            web_context_tokens=int(values.get('WEB_CONTEXT_TOKEN_BUDGET') or 18000),
+            experience_tokens=int(values.get('EXPERIENCE_TOKEN_BUDGET') or 80000),
+            experience_seconds=float(values.get('EXPERIENCE_TIME_BUDGET') or 180),
+            web_cache_seconds=int(values.get('WEB_SEARCH_CACHE_SECONDS') or 1800),
+            tavily_key=values.get('TAVILY_API_KEY', '') or '',
             deepseek_key=values.get("DEEPSEEK_API_KEY", "") or "",
             zhihu_secret=values.get("ZHIHU_ACCESS_SECRET", "") or "",
         )

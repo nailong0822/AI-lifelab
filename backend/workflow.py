@@ -38,6 +38,7 @@ class RetrievalWorkflow:
         self.store = store
         self.model = model
         self.search = search
+        self.experiences = None
         builder = StateGraph(GraphState)
         for name, handler in {
             "understand": self.understand, "clarify": self.clarify,
@@ -283,6 +284,12 @@ class RetrievalWorkflow:
         if state.get("stop_reason"):
             return {"batch_hit_ids": []}
         run_id = state["run_id"]
+        run=self.store.get(run_id)
+        if self.experiences and not run.get('internal_lookup'):
+            self.store.emit(run_id,'internal.search_started','search','正在查找已授权的匿名经历')
+            path=self.store.path_for_retrieval(run_id)
+            records=self.experiences.search(run['profile'],exclude_path=path)
+            self.store.add_shared_hits(run_id,records)
         plans = state.get("pending_queries", [])[:2]
         async def perform(plan):
             current = self.store.get(run_id)
@@ -379,11 +386,13 @@ class RetrievalWorkflow:
             "专业 major、学历 education、年级 year、职业阶段 career_stage、目标 target、计划 plans、"
             "起点 starting_point、约束 constraints 分别提取。人物身份必须来自经历叙述，不能来自问题标题。"
             "全部字段都是 EvidenceFact，quote 逐字引用摘要，value 只概括引用明确支持的事实。"
+            "source_type=lifelab的文本是本人授权的匿名经历，fields为本人审阅的自述，证据范围写入由程序处理。"
             "未披露字段为 null。actions 只记录已发生行动，plans 记录计划，stage_outcomes 记录已发生结果。"
             "面试、Offer 分清，作者自述 subject 统一为 作者，转述者使用稳定人物称呼。"
             "applicability 简述有依据的背景差异。输出尽量简洁，避免各字段重复整段原文。",
             {"profile": run["profile"], "sources": [
-                {"source_hit_id": hit["id"], "title": hit["source"]["title"], "text": excerpts[hit["id"]]}
+                {"source_hit_id": hit["id"], "title": hit["source"]["title"], "text": excerpts[hit["id"]],
+                 "source_type":hit["source"].get("source_type","zhihu")}
                 for hit in hits]}, token_reserve=reserve,
         )
         by_id = {hit["id"]: hit for hit in hits}
@@ -403,7 +412,8 @@ class RetrievalWorkflow:
                 fact = getattr(candidate, name)
                 quote = clean_text(fact.quote) if fact else ""
                 if quote and quote in hit["text"] and quote in clean_text(excerpts[hit["id"]]):
-                    facts[name] = {**fact.model_dump(), "hit_id": hit["id"], "evidence_scope": "summary"}
+                    scope="user_confirmed" if hit["source"].get("source_type")=="lifelab" else "summary"
+                    facts[name] = {**fact.model_dump(), "hit_id": hit["id"], "evidence_scope": scope}
                 elif fact:
                     rejected += 1
             if facts.get("actions") and len(facts) >= 2:
@@ -570,7 +580,7 @@ class RetrievalWorkflow:
             "stats": {"requests": run["request_count"], **stats,
                       "tokens": run["tokens_used"], "active_seconds": round(elapsed(run), 2)},
             "stop_reason": reason, "result_status": result_status,
-            "evidence_note": "案例依据知乎返回摘要整理，重要字段保留引用，时间与结果缺失项仍需进一步验证。",
+            "evidence_note": "案例依据知乎摘要及已授权的用户匿名自述整理，重要字段保留引用，时间与结果缺失项仍需进一步验证。",
         }
         status = "cancelled" if reason == "cancelled" else "finished"
         if reason == "service_error" and not successful and not run["cases"]:

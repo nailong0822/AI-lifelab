@@ -22,9 +22,12 @@ from .path_store import PathConflict, PathStore
 from .paths import PathService, PathWorkflow
 from .companion import CompanionService
 from .companion_api import install_companion_routes
+from .web_search import TavilyProvider
+from .experiences import ExperienceService
+from .experience_api import install_experience_routes
 
 
-def create_app(settings: Settings | None = None, *, model=None, search=None) -> FastAPI:
+def create_app(settings: Settings | None = None, *, model=None, search=None, web_provider=None) -> FastAPI:
     configured = settings or Settings.load()
 
     @asynccontextmanager
@@ -45,12 +48,18 @@ def create_app(settings: Settings | None = None, *, model=None, search=None) -> 
                 path_service = PathService(configured, path_store, PathWorkflow(path_store, model or DeepSeekModel(), saver))
                 app.state.path_store = path_store
                 app.state.path_service = path_service
-                companion = CompanionService(configured, path_store, path_service, model or DeepSeekModel(), saver)
+                companion = CompanionService(configured, path_store, path_service, model or DeepSeekModel(), saver,
+                    web_provider=web_provider or (TavilyProvider(configured.tavily_key,client) if configured.tavily_key else None))
                 app.state.companion = companion
+                experiences=ExperienceService(configured,path_store,companion,model or DeepSeekModel())
+                app.state.experiences=experiences
+                workflow.experiences=experiences.store
                 await service.recover()
                 await path_service.recover()
                 await companion.recover()
+                await experiences.recover()
                 yield
+                await experiences.close()
                 await companion.close()
                 await path_service.close()
                 await service.close()
@@ -242,6 +251,7 @@ def create_app(settings: Settings | None = None, *, model=None, search=None) -> 
                                  headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     install_companion_routes(app, health)
+    install_experience_routes(app,health)
 
     dist = ROOT / "frontend" / "dist"
     if (dist / "assets").is_dir():
