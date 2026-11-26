@@ -21,4 +21,4 @@
 
 接口包括 POST /api/paths/{id}/experiences、GET /api/paths/{id}/experiences、GET/PUT /api/experiences/{id}、POST /share、DELETE /share、POST /retry，以及只返回公开副本的 GET /api/shared-cases/{id}。
 
-本项目仍采用现有的单用户、单进程本地访问方式。私人页面的“自己可见”表示该本地工作区内的私人记录。开放账号服务前需要实现账号认证、所有权校验和跨用户隔离。
+私人草稿、原始对话及整理依据通过账号归属校验控制访问。管理员的专用接口提供最终生成的复盘文档和摘要。已授权的公开副本可通过匿名案例页面查看。后台任务根据所属路径确定用户，并使用该用户保存的 DeepSeek API Key。

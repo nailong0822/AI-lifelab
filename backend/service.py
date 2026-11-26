@@ -10,6 +10,7 @@ from .models import ResumeInput
 from .providers import ProviderError
 from .store import Store
 from .workflow import BudgetReached, RetrievalWorkflow
+from .auth import model_owner
 
 
 class RunConflict(Exception):
@@ -29,12 +30,13 @@ class RetrievalService:
         task = asyncio.create_task(self.execute(run_id, value, event))
         self.tasks[run_id] = task
 
-    def create(self, question: str) -> dict:
-        run = self.store.create(question.strip(), self.settings)
+    def create(self, question: str,owner_id=None) -> dict:
+        run = self.store.create(question.strip(), self.settings,owner_id=owner_id)
         self.schedule(run["id"], {"run_id": run["id"]}, "run.started")
         return self.store.snapshot(run["id"])
 
     async def execute(self, run_id: str, value, event: str):
+        owner_scope=model_owner.set(self.store.get(run_id).get('owner_id'))
         self.store.change(run_id, {"status": "running", "clock_started_at": time.time()},
                           event_type=event, node="run",
                           title="开始检索" if event == "run.started" else "继续检索")
@@ -66,6 +68,7 @@ class RetrievalService:
             await self.workflow.finalize({"run_id": run_id, "stop_reason": "service_error"})
         finally:
             self.tasks.pop(run_id, None)
+            model_owner.reset(owner_scope)
 
     async def resume(self, run_id: str, answer: ResumeInput) -> dict:
         async with self.resume_lock:

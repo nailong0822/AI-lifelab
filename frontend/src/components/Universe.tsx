@@ -75,15 +75,10 @@ export function Starfield() {
 
 export function ObservatoryScene() {
   return <div className="observatory-scene" aria-hidden="true">
-    <div className="scene-coordinate">LIFELAB OBSERVATORY <span>01 / DISCOVER</span></div>
     <div className="observatory-orbit orbit-one"/><div className="observatory-orbit orbit-two"/><div className="observatory-orbit orbit-three"/>
     <div className="hero-planet"><span className="hero-atmosphere"/><img src={planetImage(4)} alt=""/><span className="hero-terminator"/></div>
     <div className="satellite satellite-one"><img src={planetImage(0)} alt=""/></div>
     <div className="satellite satellite-two"><img src={planetImage(1)} alt=""/></div>
-    <div className="scene-signal signal-one"><span><Orbit size={15}/></span><div>每一种可能<small>都有自己的引力</small></div></div>
-    <div className="scene-signal signal-two"><span><Sparkles size={15}/></span><div>真实经历<small>成为你的出发坐标</small></div><ArrowUpRight size={13}/></div>
-    <div className="scene-cross cross-one">+</div><div className="scene-cross cross-two">+</div>
-    <div className="scene-caption"><span/><Compass size={13}/>未知，值得一次出发。<span/></div>
   </div>
 }
 

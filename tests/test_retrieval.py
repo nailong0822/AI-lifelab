@@ -1,3 +1,4 @@
+from auth_helpers import login_test_client
 import asyncio
 import json
 import tempfile
@@ -382,6 +383,7 @@ class ApiTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="api-test-", dir=ROOT / ".data") as directory:
             settings = Settings(data_dir=Path(directory), token_budget=40_000)
             with TestClient(create_app(settings, model=FakeModel(), search=FakeSearch())) as client:
+                login_test_client(client)
                 response = client.post("/api/runs", json={"question": QUESTION})
                 self.assertEqual(response.status_code, 202)
                 run_id = response.json()["id"]

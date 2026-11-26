@@ -71,10 +71,11 @@ class Store:
         finally:
             db.close()
 
-    def create(self, question: str, settings: Settings) -> dict:
+    def create(self, question: str, settings: Settings, owner_id=None) -> dict:
         now = time.time()
         run = {
             "id": uid(), "question": question, "created_at": now, "updated_at": now,
+            "owner_id":owner_id or getattr(self,'default_owner_id',None),
             "status": "running", "result_status": None, "stop_reason": None,
             "profile": None, "profile_version": 0, "clarification": None,
             "queries": [], "hits": [], "cases": [], "coverage": [], "gaps": [],
@@ -172,9 +173,12 @@ class Store:
         run["analysis_stats"] = analysis_stats(run) if run.get("workflow_version") == 2 else None
         return run
 
-    def list(self) -> list[dict]:
+    def list(self,owner_id=None) -> list[dict]:
         with self.connection() as db:
-            rows = db.execute("SELECT data FROM runs ORDER BY created_at DESC LIMIT 100").fetchall()
+            if owner_id:
+                rows=db.execute("SELECT data FROM runs WHERE json_extract(data,'$.owner_id')=? ORDER BY created_at DESC LIMIT 100",(owner_id,)).fetchall()
+            else:
+                rows = db.execute("SELECT data FROM runs ORDER BY created_at DESC").fetchall()
         keys = ["id", "question", "created_at", "updated_at", "status", "result_status", "stop_reason"]
         return [{key: run.get(key) for key in keys} for run in (json.loads(row[0]) for row in rows)]
 

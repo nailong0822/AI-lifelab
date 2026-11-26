@@ -37,6 +37,8 @@ class PathStore:
         if row is None:
             raise KeyError(run_id)
         run=json.loads(row[0])
+        if not run.get('owner_id'):
+            run['owner_id']=self.store.get(run['retrieval_run_id']).get('owner_id')
         run['source_cases']=[c for c in run['source_cases'] if self.store.shared_available(c.get('source',{}))]
         run['evidence_catalog']={k:v for k,v in run['evidence_catalog'].items() if self.store.shared_available(v.get('source',{}))}
         return run
@@ -50,6 +52,7 @@ class PathStore:
         now = time.time()
         run = {
             "id": uid(), "retrieval_run_id": source["id"], "created_at": now, "updated_at": now,
+            "owner_id":source.get('owner_id'),
             "status": "running", "question": source["question"], "profile": source["profile"],
             "profile_version": source.get("profile_version", 0),
             "retrieval_clarification": source.get("clarification"),

@@ -18,14 +18,12 @@ from .web_models import WEB_TOOL_SCHEMA, ROUTE_INSTRUCTION, WebCitation, WebSear
 from .web_search import WebSearchTool, public_url
 from .web_context import fit_web_context, citation_numbers_supported, original_quote
 from .web_relevance import grounded_constraints
+from .auth import model_owner
 
-SUPPORT_MESSAGE = ('听起来你现在正承受很重的痛苦。我们先把任务放下，你的安全更重要。'
-                   '如果你已经受伤、服用了危险物质，或可能马上伤害自己，请立即联系当地急救，并让身边可信任的人来陪你。'
-                   '如果可以，先离开危险物品，去有人陪伴的地方。你现在是否安全？身边有没有可以联系的人？')
 INSTRUCTION = '''你是人生实验室的AI随航伙伴，帮助用户在成长路径上获得理解、解决具体困难、记录真实进展。统一用中文，温暖、坦诚、自然，允许用户暂停或改变方向。
 先回应具体处境，别机械夸奖或每次布置任务。listen模式优先倾听，不主动推任务或改计划；solve模式给可执行排查；auto结合语境。用户已给的信息不要反复问，一次最多问一个必要问题。普通回复简洁，复杂问题才展开；代码可使用围栏代码块，其他内容用朴素文字。
-你不能执行电脑命令或假装已替用户运行代码、找到工作、修改状态。你是AI，不冒充真人、医生或心理治疗师，不诊断，不保证录用或成功，不制造依赖、愧疚或排他关系。明显的即时自伤/人身安全危险用safety=urgent，暂停任务建议。
-当前路径数据库是目标、版本、进度的唯一权威。task_status是当前任务状态；recent中的operations是操作实际结果，undone代表已撤销，failed/dismissed代表未执行。即使旧对话声称完成，也不能覆盖当前pending状态。会话摘要和助手历史只是讨论，不能证明用户完成。长期记忆以当前memories为准，用户新说法优先，不能恢复用户已经更正或删除的信息。不要保存推测的情绪、人格、动机标签。
+你不能执行电脑命令或假装已替用户运行代码、找到工作、修改状态。你是AI，不冒充真人、医生或心理治疗师，不诊断，不保证录用或成功，不制造依赖、愧疚或排他关系。明显的即时自伤/人身安全危险用safety=urgent，暂停任务建议，结合用户当时的表达回应当下安全与现实支持。
+没有选择路径时，你也可以陪用户日常聊天、解决问题和联网查资料，不要要求用户先生成路径。此时stage与goal为空，只可提出memory操作，不得虚构任务或提出进度、调整计划与路径成果操作。当前路径数据库是目标、版本、进度的唯一权威。task_status是当前任务状态；recent中的operations是操作实际结果，undone代表已撤销，failed/dismissed代表未执行。即使旧对话声称完成，也不能覆盖当前pending状态。会话摘要和助手历史只是讨论，不能证明用户完成。长期记忆以当前memories为准，用户新说法优先，不能恢复用户已经更正或删除的信息。不要保存推测的情绪、人格、动机标签。
 actions最多两项，所有quote必须是本轮用户连续原话，主体必须是用户本人；计划、假设、否定、他人经历不能记为用户完成。
 progress只用给定的真实stage_id/task_id/status。只有用户明确报告完成且满足给定完成标准、唯一匹配当前任务时才automatic=true；模糊时说明需要确认。未来阶段成果用achievement，不能补齐所有前置任务。阶段推进由用户在星图上操作。
 revision用于新约束或用户要求调整计划，value写清建议改变的范围，保留已完成工作，automatic=false；只会生成供用户审阅的方案。
@@ -80,6 +78,8 @@ class CompanionService:
         self.tasks[turn_id] = asyncio.create_task(self.execute(turn_id, value))
 
     async def execute(self, turn_id, value):
+        turn=self.store.get('turns',turn_id)
+        owner_scope=model_owner.set(self.store.context(turn['path_id']).get('owner_id'))
         try:
             await self.graph.ainvoke(value, config=self.config(turn_id))
         except asyncio.CancelledError:
@@ -94,17 +94,16 @@ class CompanionService:
             if turn['clock_started']:
                 self.store.change('turns', turn_id, {'active_seconds': turn['active_seconds'] + time.time() - turn['clock_started'], 'clock_started': None})
             self.tasks.pop(turn_id, None)
+            model_owner.reset(owner_scope)
 
     async def send(self, session_id, body):
         async with self.lock:
             session = self.store.get('sessions', session_id)
-            path = self.paths.get(session['path_id'])
-            if not path['plan']:
-                raise PathConflict('请先选择航线并生成计划，再与随航伙伴一起探索')
+            path = self.store.context(session['path_id'])
             if not body.text.strip():
                 raise PathConflict('先写下一点想说的话吧')
             if body.task_id or body.stage_id:
-                stage = next((s for s in path['plan']['stages'] if s['id'] == body.stage_id), None)
+                stage = next((s for s in (path['plan'] or {}).get('stages', []) if s['id'] == body.stage_id), None)
                 if not stage or not any(t['id'] == body.task_id for t in stage['tasks']):
                     raise PathConflict('关联任务已变化，请重新从任务进入求助')
             turn, created = self.store.new_turn(session_id, body, self.settings.companion_tokens)
@@ -115,9 +114,9 @@ class CompanionService:
     async def load(self, state):
         turn = self.store.get('turns', state['turn_id'])
         session = self.store.get('sessions', turn['session_id'])
-        path = self.paths.get(turn['path_id'])
-        stages = path['plan']['stages']
-        stage = next((s for s in stages if s['id'] == turn['input']['stage_id']), None) or next((s for s in stages if s['id'] == path['current_stage_id']), stages[0])
+        path = self.store.context(turn['path_id'])
+        stages = (path['plan'] or {}).get('stages', [])
+        stage = next((s for s in stages if s['id'] == turn['input']['stage_id']), None) or next((s for s in stages if s['id'] == path['current_stage_id']), stages[0] if stages else {'id': '', 'tasks': []})
         recent = self.store.turns(session['id'])['turns']
         recent = [{'user': t['input']['text'][:1200], 'assistant': (t.get('reply') or {}).get('message', '')[:1600],
                    'operations': [{'kind': a['kind'], 'status': a['status'], 'task_id': a.get('task_id')} for a in self.store.actions(t['id'])]}
@@ -126,7 +125,7 @@ class CompanionService:
         for item in evidence:
             item['quote'] = item['quote'][:300]
             item['value'] = item['value'][:150]
-        context = {'question': path['question'][:1800], 'profile': path['profile'], 'goal': path['plan']['goal'],
+        context = {'question': path['question'][:1800], 'profile': path['profile'], 'goal': (path['plan'] or {}).get('goal', ''),
                    'plan_version': path['version'], 'journey_status': path['journey_status'], 'path_status': path['status'],
                    'current_stage_id': path['current_stage_id'], 'associated_task_id': turn['input']['task_id'],
                    'stage': stage, 'stage_outline': [{'id': s['id'], 'title': s['title']} for s in stages],
@@ -242,8 +241,6 @@ class CompanionService:
         turn = self.store.get('turns', state['turn_id'])
         if turn['model_result']:
             return {'reply': turn['model_result']}
-        if immediate_danger(turn['input']['text']):
-            return {'reply': CompanionReply(intent='support', safety='urgent', message=SUPPORT_MESSAGE).model_dump()}
         instruction = INSTRUCTION
         for attempt in range(2):
             payload = dict(state['context'])
@@ -319,16 +316,20 @@ class CompanionService:
 
     async def validate(self, state):
         turn = self.store.get('turns', state['turn_id'])
-        path = self.paths.get(turn['path_id'])
+        path = self.store.context(turn['path_id'])
         reply = dict(state['reply'])
+        if immediate_danger(turn['input']['text']):
+            reply['safety'] = 'urgent'
         if reply['safety'] == 'urgent':
-            reply.update(message=SUPPORT_MESSAGE, small_step='', actions=[], evidence_ids=[], followups=[], web_citations=[])
+            reply.update(small_step='', actions=[], evidence_ids=[], followups=[], web_citations=[])
         actions = []
         for proposal in reply['actions']:
             quote = proposal['quote'].strip()
             if not quote or quote not in turn['input']['text']:
                 continue
             kind = proposal['kind']
+            if not path['plan'] and kind in ('progress', 'revision', 'achievement'):
+                continue
             verbs = {'progress':'标记|记录|点亮|修改|更新', 'memory':'记住|保存|记录', 'revision':'调整|修改|重排', 'achievement':'记录|保存'}[kind]
             if re.search(r'(?:不要|别|不用|无需|先不|暂不).{0,12}(?:' + verbs + ')', turn['input']['text']):
                 continue

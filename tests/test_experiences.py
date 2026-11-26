@@ -1,3 +1,4 @@
+from auth_helpers import login_test_client
 import asyncio
 import copy
 import json
@@ -222,6 +223,7 @@ class ExperienceApiTests(unittest.TestCase):
             settings=Settings(data_dir=Path(directory))
             app=create_app(settings,model=Model(),search=FakeSearch())
             with TestClient(app) as client:
+                login_test_client(client)
                 original=app.state.store.create(QUESTION,settings)
                 app.state.store.change(original['id'],{'profile':profile(),'status':'finished'})
                 result=client.post('/api/runs/'+original['id']+'/paths').json()

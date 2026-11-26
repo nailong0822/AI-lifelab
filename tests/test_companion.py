@@ -1,3 +1,4 @@
+from auth_helpers import login_test_client
 import asyncio
 import json
 import tempfile
@@ -190,10 +191,12 @@ class CompanionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result['actions'][0]['status'], 'dismissed')
         self.assertEqual(self.service.store.memories(self.path_id), [])
 
-    async def test_safety_bypass_does_not_push_tasks_or_save_memory(self):
+    async def test_safety_reply_uses_model_text_without_tasks_or_memory(self):
         before = len(self.model.inputs)
         turn = await self.send('虚构安全测试：我现在要自杀')
-        self.assertEqual(len(self.model.inputs), before)
+        self.assertEqual(len(self.model.inputs), before + 1)
+        self.assertEqual(turn['status'], 'completed', turn['error'])
+        self.assertEqual(turn['reply']['message'], '卡住会让人很挫败。可以先缩小到一个具体输入，我们一起看看实际结果。')
         self.assertEqual(turn['reply']['safety'], 'urgent')
         self.assertEqual(turn['actions'], [])
         self.assertEqual(self.service.store.memories(self.path_id), [])
@@ -236,6 +239,31 @@ class CompanionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(run['version'], 1)
         await self.path_service.revise(self.path_id, PlanRevision(version=1, instruction='重复操作不应重新生成'), action_id=turn['actions'][0]['id'])
         self.assertEqual(self.paths.get(self.path_id)['status'], 'awaiting_revision')
+
+    async def test_legacy_scope_migration_preserves_messages_and_foreign_keys(self):
+        from backend.companion_store import CompanionStore
+        turn = await self.send('虚构测试：请记住以后回答简短一些')
+        with self.business.connection() as db:
+            db.execute('PRAGMA foreign_keys=OFF')
+            db.execute('BEGIN IMMEDIATE')
+            for table in ('sessions', 'memories'):
+                name = 'companion_' + table
+                sql = db.execute('SELECT sql FROM sqlite_master WHERE name=?',(name,)).fetchone()[0]
+                sql = sql.replace('"' + name + '"',name)
+                db.execute(sql.replace(name,name + '_legacy',1).replace('REFERENCES companion_scopes(id)','REFERENCES path_runs(id)'))
+                db.execute(f'INSERT INTO {name}_legacy SELECT * FROM {name}')
+                db.execute(f'DROP TABLE {name}')
+                db.execute(f'ALTER TABLE {name}_legacy RENAME TO {name}')
+            db.commit()
+        restored = CompanionStore(self.paths)
+        snapshot = restored.snapshot(self.session['id'])
+        self.assertEqual(snapshot['turns'][0]['id'],turn['id'])
+        self.assertEqual(len(snapshot['memories']),1)
+        self.assertEqual(restored.session(self.path_id)['id'],self.session['id'])
+        with self.business.connection() as db:
+            self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(),[])
+        again = CompanionStore(self.paths)
+        self.assertEqual(again.snapshot(self.session['id'])['turns'][0]['id'],turn['id'])
 
     async def test_small_budget_stops_before_external_call(self):
         self.service.settings = Settings(data_dir=self.settings.data_dir, companion_tokens=100)
@@ -283,15 +311,17 @@ class CompanionApiTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=ROOT / '.data') as folder:
             app = create_app(Settings(data_dir=Path(folder)), model=CompanionModel())
             with TestClient(app) as client:
+                login_test_client(client)
                 self.assertEqual(client.post('/api/paths/missing/companion/sessions').status_code, 404)
                 self.assertEqual(client.get('/api/companion/sessions/missing/messages').status_code, 404)
-                self.assertEqual(client.post('/api/companion/sessions/missing/messages', json={'client_message_id':'test-client-id','text':''}).status_code, 422)
+                self.assertEqual(client.post('/api/companion/sessions/missing/messages', json={'client_message_id':'test-client-id','text':''}).status_code, 404)
 
     def test_http_chat_memory_and_restart_contracts(self):
         with tempfile.TemporaryDirectory(dir=ROOT / '.data') as folder:
             settings = Settings(data_dir=Path(folder))
             app = create_app(settings, model=CompanionModel())
             with TestClient(app) as client:
+                login_test_client(client)
                 source = app.state.store.create(QUESTION, settings)
                 app.state.store.change(source['id'], {'status':'finished','profile':profile()})
                 path = client.post(f"/api/runs/{source['id']}/paths").json()
@@ -321,6 +351,7 @@ class CompanionApiTests(unittest.TestCase):
                 events = app.state.companion.store.events(session_id)
                 self.assertEqual([e['sequence'] for e in events],list(range(1,len(events)+1)))
             with TestClient(create_app(settings,model=CompanionModel())) as client:
+                login_test_client(client)
                 restored = client.get(messages_url).json()
                 self.assertEqual(len(restored['turns']),1)
                 self.assertEqual(restored['memories'],[])

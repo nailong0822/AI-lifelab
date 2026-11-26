@@ -7,7 +7,14 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
   })
   const body = await response.json()
   if (!response.ok) {
-    throw new Error(typeof body.detail === 'string' ? body.detail : '请求未完成，请检查输入或稍后重试')
+    if(response.status===401)window.dispatchEvent(new Event('lifelab-unauthorized'))
+    let message='请求未完成，请检查输入或稍后重试'
+    if(typeof body.detail==='string')message=body.detail
+    else if(Array.isArray(body.detail)) {
+      const issues=body.detail.map((item:{msg?:string})=>item.msg).filter(Boolean)
+      if(issues.length)message=issues.slice(0,3).join('；')
+    }
+    throw new Error(message)
   }
   return body as T
 }

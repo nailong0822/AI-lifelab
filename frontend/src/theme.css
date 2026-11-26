@@ -358,9 +358,9 @@
   position:relative;
   display:grid;
   grid-template-columns:1.15fr .85fr;
-  align-items:center;
-  margin:45px 0 36px;
-  min-height:480px
+  align-items:start;
+  margin:20px 0 28px;
+  min-height:0
 }
 .new-workspace {
   width:100%;
@@ -1713,8 +1713,8 @@
     padding-top:32px
   }
   .observatory-hero {
-    margin-top:62px;
-    min-height:550px
+    margin-top:20px;
+    min-height:0
   }
   .new-workspace h1 {
     font-size:47px
@@ -1747,7 +1747,7 @@
   }
   .observatory-hero {
     grid-template-columns:1.2fr .8fr;
-    margin-top:40px
+    margin-top:20px
   }
   .observatory-scene {
     width:150%;
@@ -1815,7 +1815,7 @@
     padding-inline:30px
   }
   .observatory-hero {
-    margin-top:55px
+    margin-top:24px
   }
   .new-workspace h1 {
     font-size:35px
@@ -1865,7 +1865,7 @@
   }
   .observatory-hero {
     display:block;
-    margin:40px 0 28px;
+    margin:16px 0 28px;
     min-height:0
   }
   .new-workspace {

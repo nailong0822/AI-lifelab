@@ -8,6 +8,7 @@ export interface CompanionMemory {id: string; kind: string; value: string; updat
 export interface CompanionPage {session: {id: string; path_id: string; mode: 'auto'|'listen'|'solve'; sequence: number}; turns: CompanionTurn[]; memories: CompanionMemory[]; has_older: boolean; oldest_cursor: number|null; capabilities?:{web_search:boolean;provider:string}}
 export interface CompanionEvent {sequence: number; title: string; event_type: string; turn_id: string|null; occurred_at: number; payload: Record<string, unknown>}
 export const companionApi = {
+  personal: () => request<CompanionPage>('/companion/personal', {method:'POST'}),
   session: (pathId: string) => request<CompanionPage>(`/paths/${pathId}/companion/sessions`, {method:'POST'}),
   messages: (id: string, before?: number) => request<CompanionPage>(`/companion/sessions/${id}/messages${before ? '?before='+before : ''}`),
   send: (id: string, body: object) => request<CompanionTurn>(`/companion/sessions/${id}/messages`, {method:'POST',body:JSON.stringify(body)}),

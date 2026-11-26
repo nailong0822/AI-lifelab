@@ -10,11 +10,28 @@ class CompanionStore:
         self.web_configured = False
         self.store = paths.store
         with self.store.connection() as db:
+            # A scope is either a real journey or a user's everyday conversation.
+            db.execute('CREATE TABLE IF NOT EXISTS companion_scopes(id TEXT PRIMARY KEY, owner_id TEXT, path_id TEXT UNIQUE)')
+            db.commit()
+            # Preserve existing IDs and dependent turn/event records during upgrade.
+            db.execute('PRAGMA foreign_keys=OFF')
+            db.execute('BEGIN IMMEDIATE')
+            for table in ('sessions', 'memories'):
+                name = 'companion_' + table
+                row = db.execute('SELECT sql FROM sqlite_master WHERE name=?', (name,)).fetchone()
+                if row and 'REFERENCES path_runs' in row[0]:
+                    db.execute(f'INSERT OR IGNORE INTO companion_scopes(id,path_id) SELECT DISTINCT path_id,path_id FROM {name}')
+                    db.execute(row[0].replace(name, name + '_upgrade', 1).replace('REFERENCES path_runs(id)', 'REFERENCES companion_scopes(id)'))
+                    db.execute(f'INSERT INTO {name}_upgrade SELECT * FROM {name}')
+                    db.execute(f'DROP TABLE {name}')
+                    db.execute(f'ALTER TABLE {name}_upgrade RENAME TO {name}')
+            db.commit()
+            db.execute('PRAGMA foreign_keys=ON')
             db.executescript('''
-              CREATE TABLE IF NOT EXISTS companion_sessions(id TEXT PRIMARY KEY, path_id TEXT UNIQUE NOT NULL REFERENCES path_runs(id), data TEXT NOT NULL);
+              CREATE TABLE IF NOT EXISTS companion_sessions(id TEXT PRIMARY KEY, path_id TEXT UNIQUE NOT NULL REFERENCES companion_scopes(id), data TEXT NOT NULL);
               CREATE TABLE IF NOT EXISTS companion_turns(ordinal INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT UNIQUE NOT NULL, session_id TEXT NOT NULL REFERENCES companion_sessions(id), client_id TEXT NOT NULL, data TEXT NOT NULL, UNIQUE(session_id, client_id));
               CREATE TABLE IF NOT EXISTS companion_actions(id TEXT PRIMARY KEY, turn_id TEXT NOT NULL REFERENCES companion_turns(id), data TEXT NOT NULL);
-              CREATE TABLE IF NOT EXISTS companion_memories(id TEXT PRIMARY KEY, path_id TEXT NOT NULL REFERENCES path_runs(id), data TEXT NOT NULL);
+              CREATE TABLE IF NOT EXISTS companion_memories(id TEXT PRIMARY KEY, path_id TEXT NOT NULL REFERENCES companion_scopes(id), data TEXT NOT NULL);
               CREATE TABLE IF NOT EXISTS companion_events(session_id TEXT NOT NULL REFERENCES companion_sessions(id), sequence INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY(session_id, sequence));
             ''')
 
@@ -47,9 +64,23 @@ class CompanionStore:
             return item
         return self.transaction(update)
 
-    def session(self, path_id):
-        self.paths.get(path_id)
+    def context(self, scope_id):
+        with self.store.connection() as db:
+            row = db.execute('SELECT owner_id,path_id FROM companion_scopes WHERE id=?', (scope_id,)).fetchone()
+        if row and row[1] is None:
+            return {'id': scope_id, 'owner_id': row[0], 'plan': None, 'question': '', 'profile': None,
+                    'version': 0, 'progress_revision': 0, 'journey_status': 'unselected',
+                    'status': 'chat', 'current_stage_id': None, 'progress': {}, 'evidence_catalog': {}}
+        return self.paths.get(scope_id)
+
+    def global_session(self, owner_id):
+        return self.session('personal:' + owner_id, owner_id=owner_id)
+
+    def session(self, path_id, *, owner_id=None):
+        path = self.paths.get(path_id) if owner_id is None else None
         def create(db):
+            db.execute('INSERT OR IGNORE INTO companion_scopes VALUES(?,?,?)',
+                       (path_id, path.get('owner_id') if path else owner_id, path_id if path else None))
             row = db.execute('SELECT data FROM companion_sessions WHERE path_id=?', (path_id,)).fetchone()
             if row:
                 return json.loads(row[0])

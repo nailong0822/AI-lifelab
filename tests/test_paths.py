@@ -1,3 +1,4 @@
+from auth_helpers import login_test_client
 import asyncio
 import copy
 import json
@@ -266,6 +267,7 @@ class PathApiTests(unittest.TestCase):
             settings = Settings(data_dir=Path(folder))
             application = create_app(settings, model=PathModel())
             with TestClient(application) as client:
+                login_test_client(client)
                 store = application.state.store
                 source = store.create(QUESTION, settings)
                 source_id = source["id"]
@@ -300,6 +302,7 @@ class PathApiTests(unittest.TestCase):
                 self.assertEqual([item["sequence"] for item in events], list(range(1, len(events) + 1)))
                 self.assertTrue(all(item["agent"] == "path_planner" for item in events))
             with TestClient(create_app(settings, model=PathModel())) as client:
+                login_test_client(client)
                 restored = client.get(f"/api/runs/{source_id}/paths").json()
                 self.assertEqual(restored["progress"][stage["id"] + ":t1"]["status"], "completed")
                 self.assertEqual(restored["status"], "ready")

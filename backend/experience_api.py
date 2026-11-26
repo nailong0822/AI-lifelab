@@ -25,7 +25,7 @@ def install_experience_routes(app,health):
     @app.post('/api/paths/{path_id}/experiences',status_code=202)
     async def finish(path_id: str,body: JourneyFinish):
         if not health()['model_configured']:
-            raise HTTPException(503,'请先配置 DeepSeek Key')
+            raise HTTPException(409,'请先在模型设置中填写自己的DeepSeek API Key')
         try:
             return await service().start(path_id,body)
         except KeyError:
@@ -53,7 +53,7 @@ def install_experience_routes(app,health):
     @app.post('/api/experiences/{case_id}/retry',status_code=202)
     async def retry(case_id: str):
         if not health()['model_configured']:
-            raise HTTPException(503,'请先配置 DeepSeek Key')
+            raise HTTPException(409,'请先在模型设置中填写自己的DeepSeek API Key')
         try:
             return await service().retry(case_id)
         except KeyError:

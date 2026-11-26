@@ -1,0 +1,26 @@
+.auth-page { min-height:100dvh; display:grid; place-items:center; padding:55px 20px; }
+.auth-theme { position:absolute; top:20px; right:25px; }
+.auth-card { width:min(440px,100%); padding:32px; border:1px solid var(--line-bright); border-radius:18px; background:var(--surface); color:var(--text); box-shadow:0 20px 80px #0002; }
+.auth-brand { color:var(--accent); text-decoration:none; font-size:16px; }
+.auth-card h1 { font-size:29px; margin:20px 0; }
+.auth-card h2 { margin:0; font-size:21px; }
+.auth-card p { color:var(--text-secondary); font-size:13px; line-height:1.7; }
+.auth-card fieldset { margin:0; padding:0; border:0; min-width:0; }
+.auth-card label { display:flex; flex-direction:column; gap:8px; font-size:13px; margin:16px 0; color:var(--text-secondary); }
+.auth-card input,.auth-card select { width:100%; padding:12px; border:1px solid var(--line-bright); border-radius:8px; background:var(--background); color:var(--text); font:inherit; }
+.auth-card button,.account-controls button,.account-controls a { display:inline-flex; align-items:center; justify-content:center; gap:7px; border:1px solid var(--line); border-radius:8px; padding:10px 13px; color:var(--text); background:transparent; font:inherit; cursor:pointer; text-decoration:none; }
+.auth-card button:disabled { cursor:wait; opacity:.5; }
+.auth-card .auth-primary { background:var(--accent); color:var(--background); border-color:var(--accent); }
+.auth-card form > fieldset > .auth-primary { width:100%; margin-top:12px; }
+.auth-card .auth-switch { border:0; padding-left:0; margin-top:17px; color:var(--accent); }
+.auth-card .auth-error { color:var(--palette-d98c81,#d98c81); }
+.auth-card header,.auth-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.auth-card header button { border:0; padding:4px; }
+.auth-loading { min-height:100dvh; display:flex; justify-content:center; align-items:center; gap:10px; }
+.account-controls { display:flex; align-items:center; gap:9px; font-size:12px; }
+.account-controls button,.account-controls a { padding:8px 10px; }
+.account-controls i { width:5px; height:5px; border-radius:50%; background:var(--sand); }
+.account-name { max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-secondary); }
+.auth-key-overlay { position:fixed; inset:0; width:100%; height:100dvh; max-width:none; max-height:none; margin:0; padding:20px; border:0; background:#03101bb3; z-index:1000; color:var(--text); display:grid; place-items:center; }
+.auth-key-overlay .auth-card { width:min(480px,100%); }
+@media(max-width:650px) { .auth-card { padding:24px; }.account-controls { gap:4px; }.account-controls button,.account-controls a { padding:7px; }.account-controls a span,.account-name { display:none; }.topbar-right { gap:6px; } }

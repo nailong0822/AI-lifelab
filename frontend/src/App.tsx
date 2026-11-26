@@ -4,11 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowRight, ArrowUpRight, BookOpen, Check, CheckCircle2, ChevronDown,
   Circle, CircleAlert, Clock3, ExternalLink, History, LoaderCircle,
-  Menu, MessageSquare, Plus, Search, Sparkles, Square, WifiOff, X, Compass, Orbit, Radio, Star as StarIcon,
+  Menu, MessageSquare, Plus, Search, Sparkles, Square, WifiOff, X, Compass, Orbit, Radio,
 } from 'lucide-react'
 import { api } from './api'
 import PathsPage, { Dialog, PathEntry } from './PathsPage'
 import SharedCasePage from './SharedCasePage'
+import AdminPage from './AdminPage'
+import { AccountControls, useAuth } from './AuthProvider'
 import { JourneySteps, ObservatoryScene, Starfield } from './components/Universe'
 import { ThemeToggle } from './ThemeProvider'
 import { Button } from './components/ui/button'
@@ -52,7 +54,7 @@ function Sidebar({ history, close }: { history: RunSummary[]; close: () => void 
   return <aside className="sidebar">
     <Link className="brand" to="/retrieval" onClick={close}>
       <span className="brand-symbol"><Orbit size={25} strokeWidth={1.3} /></span>
-      <span><strong>人生实验室</strong><small>LIFELAB · YOUR NEXT ORBIT</small></span>
+      <span><strong>人生实验室</strong></span>
     </Link>
     <Button asChild className="new-button"><Link to="/retrieval" onClick={close}><Plus size={17} />开启新的探索</Link></Button>
     <nav aria-label="主要导航">
@@ -67,8 +69,8 @@ function Sidebar({ history, close }: { history: RunSummary[]; close: () => void 
           {run.status === 'running' && <span className="recent-dot" />}
         </Link>) : <p className="history-empty">你的探索会保存在这里</p>}
     </div>
-    <div className="sidebar-manifest"><Orbit size={25}/><p>人生没有标准航线。<br/>每一次探索，都算数。</p><span>STAY CURIOUS. KEEP GOING.</span></div>
-    <div className="sidebar-foot"><span className="leaf-dot" />你的探索，保存在本地</div>
+
+
   </aside>
 }
 
@@ -77,7 +79,7 @@ function Composer({ health, question, setQuestion, onSubmit, pending }: {
 }) {
   const configured = health?.model_configured && health.zhihu_configured
   return <form className="composer" onSubmit={event => { event.preventDefault(); onSubmit() }}>
-    <div className="composer-caption"><span><Radio size={13}/>向未知，发送你的第一个信号</span><small>01 / YOUR QUESTION</small></div>
+    <div className="composer-caption"><span>描述你的问题</span></div>
     <textarea aria-label="描述你想探索的问题" placeholder="说说你的背景、正在考虑的选择，以及让你犹豫的地方…"
       value={question} onChange={event => setQuestion(event.target.value)} maxLength={6000}
       onKeyDown={event => {
@@ -86,7 +88,7 @@ function Composer({ health, question, setQuestion, onSubmit, pending }: {
         }
       }} />
     <div className="composer-footer">
-      <span><BookOpen size={15} />从真实经历出发<span className="composer-shortcut">Ctrl / ⌘ + Enter</span></span>
+      <span><span className="composer-shortcut">Ctrl / ⌘ + Enter</span></span>
       <Button type="submit" disabled={pending || !configured || question.trim().length < 5}>
         {pending ? <LoaderCircle size={16} className="spin" /> : <>开始探索<ArrowUpRight size={17} /></>}
       </Button>
@@ -103,15 +105,12 @@ function NewRun({ health }: { health?: Health }) {
     onSuccess: run => { cache.invalidateQueries({ queryKey: ['history'] }); navigate('/retrieval/' + run.id) },
   })
   return <div className="observatory-home">
-    <JourneySteps active={0}/>
     <div className="observatory-hero">
     <main className="new-workspace">
-      <div className="eyebrow"><span />给人生一点，新的可能 <span className="eyebrow-line"/></div>
-      <h1>人生没有标准航线。<br /><em>先看见你的可能。</em></h1>
-      <p className="intro">有人走过你正犹豫的路。<br/>从他们的真实经历出发，找到属于自己的下一步。</p>
+      <h1>探索你的下一步</h1>
       <Composer health={health} question={question} setQuestion={setQuestion} onSubmit={() => create.mutate()} pending={create.isPending} />
       {create.error && <p className="inline-error" role="alert"><CircleAlert size={16} />{create.error.message}</p>}
-      <div className="examples"><span>还没想好？从一个念头开始</span><div className="example-chips">
+      <div className="examples"><div className="example-chips">
         {examples.map(example => <button type="button" key={example} onClick={() => setQuestion(example)}>
           <span>{['跨专业，寻找新方向', '升学，看看另一种可能', '转行，先做一次小实验'][examples.indexOf(example)]}</span><ArrowUpRight size={13} />
         </button>)}
@@ -119,8 +118,7 @@ function NewRun({ health }: { health?: Health }) {
     </main>
     <ObservatoryScene />
     </div>
-    <div className="observatory-principles">{[{icon: BookOpen, number: '01', title: '让经历成为坐标', text: '检索知乎分享与授权的匿名经历，每条线索都有来源。'}, {icon: Orbit, number: '02', title: '让选择多一种可能', text: '比较不同方向，用小实验验证适合自己的路。'}, {icon: StarIcon, number: '03', title: '让改变发生在今天', text: '把远方拆成小行动，记录每一次真实进展。'}].map(item => <div key={item.number}><span>{item.number}</span><item.icon size={18}/><h2>{item.title}</h2><p>{item.text}</p></div>)}</div>
-    <footer className="observatory-footer"><span>以真实经历为起点，以你的选择为方向。</span><span>LIFELAB / EXPLORE YOUR POSSIBILITIES</span></footer>
+
   </div>
 }
 
@@ -438,10 +436,12 @@ function HistoryPage({ history }: { history: RunSummary[] }) {
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  const {openKey}=useAuth()
+  const admin=location.pathname==='/admin'
   const exploring = location.pathname.startsWith('/explore/')
   const sharing=location.pathname.startsWith('/shared-cases/')
-  const history = useQuery({ queryKey: ['history'], queryFn: api.list, refetchInterval: 10000, enabled: !exploring && !sharing })
-  const health = useQuery({ queryKey: ['health'], queryFn: api.health, refetchInterval: 15000, enabled: !exploring && !sharing })
+  const history = useQuery({ queryKey: ['history'], queryFn: api.list, refetchInterval: 10000, enabled: !exploring && !sharing && !admin })
+  const health = useQuery({ queryKey: ['health'], queryFn: api.health, refetchInterval: 15000, enabled: !exploring && !sharing && !admin })
   useEffect(() => { setMenuOpen(false); window.scrollTo({top: 0}) }, [location.pathname])
   useEffect(() => {
     if (!menuOpen) return
@@ -453,6 +453,7 @@ export default function App() {
     window.addEventListener('keydown', close)
     return () => {window.removeEventListener('keydown', close); document.body.style.overflow = overflow; previous?.focus()}
   }, [menuOpen])
+  if (admin) return <><Starfield/><AdminPage/></>
   if (exploring) return <><Starfield/><Routes><Route path="/explore/:runId" element={<PathsPage />} /></Routes></>
   if (sharing) return <><Starfield/><Routes><Route path="/shared-cases/:caseId" element={<SharedCasePage/>}/></Routes></>
   return <><Starfield/><div className="app-shell">
@@ -460,12 +461,12 @@ export default function App() {
     <div id="main-navigation" className={menuOpen ? 'sidebar-wrap open' : 'sidebar-wrap'}><Sidebar history={history.data || []} close={() => setMenuOpen(false)} /></div>
     <div className="app-body" inert={menuOpen}>
       <header className="topbar"><button className="menu-toggle" aria-label="打开导航" aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(true)}><Menu size={21} /></button>
-        <span className="breadcrumb"><span className="breadcrumb-caption">WORKSPACE</span><span>/</span><strong>{location.pathname === '/history' ? '探索档案' : '深空观测站'}</strong></span>
-        <div className="topbar-right"><span className="connection-status"><i/>{health.isError ? '连接恢复中' : health.data ? '观测站已连接' : '连接观测站'}</span><span className="model-label"><Sparkles size={13} />DeepSeek Flash</span><ThemeToggle/><span className="profile-monogram">L</span></div>
+        <span className="breadcrumb"><strong>{location.pathname === '/history' ? '探索档案' : '深空观测站'}</strong></span>
+        <div className="topbar-right"><span className="connection-status"><i/>{health.isError ? '连接恢复中' : health.data ? '观测站已连接' : '连接观测站'}</span><ThemeToggle/><AccountControls/></div>
       </header>
       {health.isError && <div className="config-banner error-banner"><WifiOff size={16} />暂时无法连接后端，请确认检索服务已启动。</div>}
       {health.data && (!health.data.model_configured || !health.data.zhihu_configured) && <div className="config-banner">
-        <CircleAlert size={17} /><span>{!health.data.model_configured ? 'DeepSeek 模型尚未配置' : '知乎搜索尚未配置'}。请在项目 .env 中填写对应凭证后开始探索。</span>
+        <CircleAlert size={17} /><span>{!health.data.model_configured ? '请添加你的DeepSeek API Key。' : '平台知乎搜索服务尚未配置。'}{!health.data.model_configured && <button onClick={openKey}>打开模型设置</button>}</span>
       </div>}
       <Routes>
         <Route path="/" element={<Navigate to="/retrieval" replace />} />

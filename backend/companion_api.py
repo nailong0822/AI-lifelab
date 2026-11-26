@@ -6,6 +6,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import StreamingResponse
 from .companion_models import CompanionMessage, ActionDecision, MemoryUpdate
 from .path_store import PathConflict
+from .auth import COOKIE_NAME, current_user
 
 def install_companion_routes(app, health):
     def service():
@@ -27,6 +28,11 @@ def install_companion_routes(app, health):
         except PathConflict as error:
             raise HTTPException(409, str(error))
 
+    @app.post('/api/companion/personal')
+    def personal_companion_session():
+        session = service().store.global_session(current_user.get()['id'])
+        return service().store.snapshot(session['id'])
+
     @app.post('/api/paths/{path_id}/companion/sessions')
     def create_companion_session(path_id: str):
         session = read(service().store.session, path_id)
@@ -39,13 +45,13 @@ def install_companion_routes(app, health):
     @app.post('/api/companion/sessions/{session_id}/messages', status_code=202)
     async def companion_send(session_id: str, body: CompanionMessage):
         if not health()['model_configured']:
-            raise HTTPException(503, '请先在服务端配置 DeepSeek Key')
+            raise HTTPException(409, '请先在模型设置中填写自己的DeepSeek API Key')
         return await act(service().send, session_id, body)
 
     @app.post('/api/companion/turns/{turn_id}/retry', status_code=202)
     async def companion_retry(turn_id: str):
         if not health()['model_configured']:
-            raise HTTPException(503, '请先在服务端配置 DeepSeek Key')
+            raise HTTPException(409, '请先在模型设置中填写自己的DeepSeek API Key')
         return await act(service().retry, turn_id)
 
     @app.post('/api/companion/actions/{action_id}/respond', status_code=202)
@@ -81,7 +87,7 @@ def install_companion_routes(app, health):
         async def stream():
             nonlocal cursor
             heartbeat = time.monotonic()
-            while not await request.is_disconnected():
+            while not await request.is_disconnected() and app.state.auth.authenticate(request.cookies.get(COOKIE_NAME)):
                 for event in service().store.events(session_id, cursor):
                     cursor = event['sequence']
                     yield f'id: {cursor}\nevent: trace\ndata: {json.dumps(event, ensure_ascii=False)}\n\n'

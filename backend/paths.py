@@ -18,6 +18,7 @@ from .providers import ProviderError, clean_text, estimate_tokens
 from .ranking import rank_key
 from .store import uid
 from .workflow import BudgetReached
+from .auth import model_owner
 
 
 class PathState(TypedDict, total=False):
@@ -454,6 +455,7 @@ class PathService:
         return self.store.snapshot(run["id"])
 
     async def execute(self, run_id, value):
+        owner_scope=model_owner.set(self.store.get(run_id).get('owner_id'))
         config = {"configurable": {"thread_id": "path:" + run_id}, "recursion_limit": 30}
         try:
             await self.workflow.graph.ainvoke(value, config=config)
@@ -473,6 +475,7 @@ class PathService:
             self.fail(run_id, "workflow_error", "路径规划执行异常，当前计划与进度已保存，可以重试")
         finally:
             self.tasks.pop(run_id, None)
+            model_owner.reset(owner_scope)
 
     def stop_clock(self, run_id, status):
         def stop(run, db):
