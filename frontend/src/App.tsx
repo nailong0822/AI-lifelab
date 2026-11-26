@@ -5,16 +5,19 @@ import {
   ArrowRight, ArrowUpRight, BookOpen, Check, CheckCircle2, ChevronDown,
   Circle, CircleAlert, Clock3, ExternalLink, History, LoaderCircle,
   Menu, MessageSquare, Plus, Search, Sparkles, Square, WifiOff, X, Compass, Orbit, Radio,
+  GraduationCap, FlaskConical, BriefcaseBusiness, ScanLine, Satellite,
 } from 'lucide-react'
 import { api } from './api'
 import PathsPage, { Dialog, PathEntry } from './PathsPage'
 import SharedCasePage from './SharedCasePage'
 import AdminPage from './AdminPage'
 import { AccountControls, useAuth } from './AuthProvider'
-import { JourneySteps, ObservatoryScene, Starfield } from './components/Universe'
+import { JourneySteps, Starfield } from './components/Universe'
+import { useCompanion } from './components/CompanionDock'
 import { ThemeToggle } from './ThemeProvider'
 import { Button } from './components/ui/button'
 import type { Case, Health, Run, RunSummary, TraceEvent } from './types'
+import './station-home.css'
 
 const statusLabels: Record<string, string> = {
   running: '探索中', awaiting_input: '等待补充', finished: '已完成', failed: '执行受限', cancelled: '已停止',
@@ -54,7 +57,7 @@ function Sidebar({ history, close }: { history: RunSummary[]; close: () => void 
   return <aside className="sidebar">
     <Link className="brand" to="/retrieval" onClick={close}>
       <span className="brand-symbol"><Orbit size={25} strokeWidth={1.3} /></span>
-      <span><strong>人生实验室</strong></span>
+      <span><strong>人生实验室</strong><small className="station-brand-caption">LIFELAB / SPACE STATION</small></span>
     </Link>
     <Button asChild className="new-button"><Link to="/retrieval" onClick={close}><Plus size={17} />开启新的探索</Link></Button>
     <nav aria-label="主要导航">
@@ -69,8 +72,7 @@ function Sidebar({ history, close }: { history: RunSummary[]; close: () => void 
           {run.status === 'running' && <span className="recent-dot" />}
         </Link>) : <p className="history-empty">你的探索会保存在这里</p>}
     </div>
-
-
+    <div className="station-sidebar-footer"><span className="station-tiny-orbit"><Orbit size={20}/></span><div>每一次探索，都有迹可循。<small>YOUR NEXT POSSIBILITY</small></div></div>
   </aside>
 }
 
@@ -79,7 +81,7 @@ function Composer({ health, question, setQuestion, onSubmit, pending }: {
 }) {
   const configured = health?.model_configured && health.zhihu_configured
   return <form className="composer" onSubmit={event => { event.preventDefault(); onSubmit() }}>
-    <div className="composer-caption"><span>描述你的问题</span></div>
+    <div className="composer-caption"><span><Radio size={14}/>描述你的问题</span><small>{question.length} / 6000</small></div>
     <textarea aria-label="描述你想探索的问题" placeholder="说说你的背景、正在考虑的选择，以及让你犹豫的地方…"
       value={question} onChange={event => setQuestion(event.target.value)} maxLength={6000}
       onKeyDown={event => {
@@ -98,25 +100,41 @@ function Composer({ health, question, setQuestion, onSubmit, pending }: {
 
 function NewRun({ health }: { health?: Health }) {
   const [question, setQuestion] = useState('')
+  const {openCompanion} = useCompanion()
   const navigate = useNavigate()
   const cache = useQueryClient()
   const create = useMutation({
     mutationFn: () => api.create(question),
     onSuccess: run => { cache.invalidateQueries({ queryKey: ['history'] }); navigate('/retrieval/' + run.id) },
   })
-  return <div className="observatory-home">
-    <div className="observatory-hero">
-    <main className="new-workspace">
-      <h1>探索你的下一步</h1>
+  return <div className="station-home">
+    <div className="station-backdrop" aria-hidden="true"><div className="station-porthole"><div className="station-distant-planet"/><div className="station-horizon"/></div><div className="station-window-rib"/><div className="station-particles">{Array.from({length:22},(_,i)=><i key={i} style={{left:`${(i*37+11)%100}%`,top:`${(i*23+9)%100}%`,animationDelay:`-${i*.7}s`}}/>)}</div></div>
+    <div className="station-home-grid">
+    <main className="station-input-module">
+      <div className="station-section-label"><span/>DEEP SPACE OBSERVATORY<small>01 / 探索舱</small></div>
+      <h1>探索你的<em>下一步</em><span>。</span></h1>
+      <p className="station-subtitle">从真实经历中寻找方向，让每一次选择更有依据。</p>
+      <div className="station-console">
+      <div className="station-console-heading"><span><ScanLine size={15}/>探索指令</span><span className="station-console-indicator">{create.isPending?'正在发送':question.trim()?'已编辑':'等待输入'}</span></div>
       <Composer health={health} question={question} setQuestion={setQuestion} onSubmit={() => create.mutate()} pending={create.isPending} />
+      <div className="station-source-strip"><span><Search size={12}/>知乎经历</span><span><BookOpen size={12}/>人生实验案例</span><span className="station-source-evidence"><CheckCircle2 size={12}/>保留来源证据</span></div>
+      </div>
       {create.error && <p className="inline-error" role="alert"><CircleAlert size={16} />{create.error.message}</p>}
-      <div className="examples"><div className="example-chips">
-        {examples.map(example => <button type="button" key={example} onClick={() => setQuestion(example)}>
-          <span>{['跨专业，寻找新方向', '升学，看看另一种可能', '转行，先做一次小实验'][examples.indexOf(example)]}</span><ArrowUpRight size={13} />
-        </button>)}
-      </div></div>
+      <div className="station-example-label">从一个想法开始<span>QUICK START</span></div>
+      <div className="station-examples">
+        {examples.map((example,index) => {const Icon=[GraduationCap,BriefcaseBusiness,FlaskConical][index];return <button type="button" key={example} onClick={() => {setQuestion(example); document.querySelector<HTMLTextAreaElement>('.station-console textarea')?.focus()}}>
+          <Icon size={19} strokeWidth={1.4}/><span><strong>{['跨专业探索','升学与成长','低成本试错'][index]}</strong><small>{['寻找另一种可能','看看别人的选择','先做一次小实验'][index]}</small></span><ArrowUpRight size={14}/>
+        </button>})}
+      </div>
+      <footer className="station-input-footer"><span><span className="station-status-dot"/>你的选择，始终由你掌舵</span><span>LIFELAB · EXPLORE YOUR POSSIBILITIES</span></footer>
     </main>
-    <ObservatoryScene />
+    <aside className="station-buddy-module" aria-label="奶龙随航伙伴展示区">
+      <div className="station-buddy-top"><span><Satellite size={14}/>随航伙伴</span><small>COMPANION / AI</small></div>
+      <div className="station-buddy-stage"><div className="station-buddy-orbit orbit-outer"/><div className="station-buddy-orbit orbit-inner"/><span className="station-reticle reticle-top"/><span className="station-reticle reticle-bottom"/>
+      <button className="station-mascot-button" onClick={()=>openCompanion()} aria-label="点击奶龙，打开随航伙伴"><img src="/mascot/nailoong-astronaut.png" alt="奶龙宇航员" draggable={false}/></button><div className="station-landing-pad"><i/><i/><i/></div><span className="station-buddy-coordinate">LIFE SUPPORT · ALWAYS HERE</span></div>
+      <div className="station-buddy-info"><span className="station-buddy-name">奶龙<span className="station-status-dot"/></span><p>随时聊聊，一起想办法。</p><Button onClick={()=>openCompanion()}><MessageSquare size={16}/>和奶龙聊聊<ArrowUpRight size={15}/></Button></div>
+      <div className="station-buddy-bottom"><span>陪伴 · 解惑 · 记录成长</span><Radio size={13}/></div>
+    </aside>
     </div>
 
   </div>
@@ -440,6 +458,7 @@ export default function App() {
   const admin=location.pathname==='/admin'
   const exploring = location.pathname.startsWith('/explore/')
   const sharing=location.pathname.startsWith('/shared-cases/')
+  const stationHome=location.pathname==='/retrieval' || location.pathname==='/'
   const history = useQuery({ queryKey: ['history'], queryFn: api.list, refetchInterval: 10000, enabled: !exploring && !sharing && !admin })
   const health = useQuery({ queryKey: ['health'], queryFn: api.health, refetchInterval: 15000, enabled: !exploring && !sharing && !admin })
   useEffect(() => { setMenuOpen(false); window.scrollTo({top: 0}) }, [location.pathname])
@@ -456,7 +475,7 @@ export default function App() {
   if (admin) return <><Starfield/><AdminPage/></>
   if (exploring) return <><Starfield/><Routes><Route path="/explore/:runId" element={<PathsPage />} /></Routes></>
   if (sharing) return <><Starfield/><Routes><Route path="/shared-cases/:caseId" element={<SharedCasePage/>}/></Routes></>
-  return <><Starfield/><div className="app-shell">
+  return <><Starfield/><div className={'app-shell' + (stationHome?' station-shell':'')}>
     {menuOpen && <button className="mobile-overlay" aria-label="关闭导航" onClick={() => setMenuOpen(false)} />}
     <div id="main-navigation" className={menuOpen ? 'sidebar-wrap open' : 'sidebar-wrap'}><Sidebar history={history.data || []} close={() => setMenuOpen(false)} /></div>
     <div className="app-body" inert={menuOpen}>

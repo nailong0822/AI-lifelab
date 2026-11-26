@@ -30,6 +30,7 @@ export function CompanionProvider({children}: {children: ReactNode}) {
   const match = matchPath('/explore/:runId', location.pathname) || matchPath('/retrieval/:runId', location.pathname)
   const runId = match?.params.runId
   const hidden = location.pathname === '/admin' || location.pathname.startsWith('/shared-cases/')
+  const home = location.pathname === '/retrieval' || location.pathname === '/'
   const lookup = useQuery({queryKey: ['path', runId], queryFn: () => pathApi.lookup(runId!), enabled: !!runId && !hidden})
   const currentPath = runId ? lookup.data?.plan ? lookup.data : null : lastPath
   const path = personal ? null : currentPath
@@ -55,14 +56,14 @@ export function CompanionProvider({children}: {children: ReactNode}) {
   const close = () => {setOpen(false); requestAnimationFrame(() => launcher.current?.focus())}
   return <DockContext.Provider value={{openCompanion}}>{children}
     {user && !hidden && <>
-      <div className={'companion-dock' + (location.pathname === '/retrieval' || location.pathname === '/' ? ' is-home' : '') + (open ? ' is-chatting' : '')}>
+      {!home && <div className={'companion-dock' + (open ? ' is-chatting' : '')}>
         {hint && !open && <div className="companion-greeting"><span>我在这里，随时聊聊</span><button aria-label="收起伙伴提示" onClick={() => setHint(false)}><X size={12}/></button></div>}
         <button ref={launcher} className="companion-launcher" aria-label={open ? '收起随航伙伴' : '与奶龙随航伙伴聊天'} aria-expanded={open} aria-controls="global-companion-panel" onClick={() => open ? close() : openCompanion()}>
           <span className="companion-orbit" aria-hidden="true"/>
           <img src="/mascot/nailoong-astronaut.png" alt="" draggable={false}/>
           <span className="companion-launcher-label"><MessageCircle size={13}/>随航伙伴</span>
         </button>
-      </div>
+      </div>}
       {open && runId && lookup.isPending ? <div className="companion-dock-notice" role="status"><LoaderCircle size={16} className="spin"/>正在读取当前航程…<button onClick={close} aria-label="关闭"><X size={16}/></button></div>
         : open && lookup.isError && !personal ? <div className="companion-dock-notice" role="alert">航程暂未载入<button onClick={() => void lookup.refetch()}>重试</button><button onClick={() => setPersonal(true)}>先聊聊</button><button onClick={close} aria-label="关闭"><X size={16}/></button></div>
         : <CompanionPanel key={path?.id || 'personal'} open={open} path={path} task={task} stageId={taskContext?.stageId} close={close} unlink={() => setTaskContext(null)} refreshPath={refreshPath} contextControls={<div className="buddy-scope-switch">
