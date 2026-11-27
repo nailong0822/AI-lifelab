@@ -38,6 +38,43 @@ class AuthTests(unittest.TestCase):
     def root(self):
         login_test_client(self.client)
 
+    def test_archive_paginates_all_records_with_filters_and_owner_isolation(self):
+        self.assertEqual(self.client.get('/api/archive').status_code,401)
+        alice=self.register()
+        records=[]
+        for index in range(115):
+            question='最早经历 Straße 100%_记录' if index==0 else f'探索记录 {index:03d}'
+            run=self.app.state.store.create(question,self.settings,owner_id=alice['id'])
+            self.app.state.store.change(run['id'],{'status':'finished' if index%2==0 else 'running'})
+            records.append(run['id'])
+        first=self.client.get('/api/archive').json()
+        self.assertEqual((first['total'],first['pages'],first['page_size']),(115,12,10))
+        self.assertEqual([r['id'] for r in first['items']],list(reversed(records[-10:])))
+        second=self.client.get('/api/archive?page=2').json()
+        self.assertEqual(len(second['items']),10)
+        self.assertTrue(set(r['id'] for r in first['items']).isdisjoint(r['id'] for r in second['items']))
+        last=self.client.get('/api/archive?page=999').json()
+        self.assertEqual(last['page'],12)
+        self.assertEqual([r['id'] for r in last['items']],list(reversed(records[:5])))
+        self.assertEqual(len(self.client.get('/api/runs').json()),100)
+        found=self.client.get('/api/archive',params={'search':'STRASSE'}).json()
+        self.assertEqual(found['total'],1)
+        self.assertEqual(found['items'][0]['id'],records[0])
+        self.assertEqual(self.client.get('/api/archive',params={'search':'%_'}).json()['total'],1)
+        finished=self.client.get('/api/archive?status=finished&page=6').json()
+        self.assertEqual((finished['total'],finished['pages'],len(finished['items'])),(58,6,8))
+        self.assertTrue(all(r['status']=='finished' for r in finished['items']))
+        empty=self.client.get('/api/archive',params={'search':'不存在的记录','page':8}).json()
+        self.assertEqual((empty['total'],empty['page'],empty['items']),(0,1,[]))
+        self.assertEqual(self.client.get('/api/archive?page=0').status_code,422)
+        self.assertEqual(self.client.get('/api/archive?status=invalid').status_code,422)
+        bob=self.register('bob')
+        self.assertEqual(self.client.get('/api/archive').json()['total'],0)
+        own=self.app.state.store.create('另一位用户的记录',self.settings,owner_id=bob['id'])
+        bob_page=self.client.get('/api/archive').json()
+        self.assertEqual([r['id'] for r in bob_page['items']],[own['id']])
+        self.assertNotIn(records[0],json.dumps(bob_page))
+
     def test_registration_roles_sessions_and_key_encryption(self):
         self.assertEqual(self.client.get('/api/runs').status_code,401)
         self.assertIsNone(self.client.get('/api/auth/me').json())

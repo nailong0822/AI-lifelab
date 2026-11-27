@@ -22,6 +22,9 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
 export const api = {
   health: () => request<Health>('/health'),
   list: () => request<RunSummary[]>('/runs'),
+  archive: (page: number, search: string, status: string, signal?: AbortSignal) =>
+    request<{items: RunSummary[]; total: number; page: number; page_size: number; pages: number}>(
+      '/archive?' + new URLSearchParams({page:String(page),search,status}), {signal}),
   run: (id: string) => request<Run>('/runs/' + id),
   create: (question: string) => request<Run>('/runs', {
     method: 'POST', body: JSON.stringify({ question }),

@@ -6,7 +6,7 @@ import time
 from contextlib import asynccontextmanager
 
 import httpx
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
@@ -98,6 +98,12 @@ def create_app(settings: Settings | None = None, *, model=None, search=None, web
     @app.get("/api/runs")
     def list_runs():
         return app.state.store.list(owner_id=current_user.get()['id'])
+
+    @app.get('/api/archive')
+    def archive(page: int = Query(default=1, ge=1, le=1000000),
+                search: str = Query(default='', max_length=500),
+                status: str = Query(default='all', pattern='^(all|finished|running)$')):
+        return app.state.store.archive(current_user.get()['id'], page=page, search=search, status=status)
 
     @app.get("/api/runs/{run_id}")
     def get_run(run_id: str):
@@ -269,6 +275,8 @@ def create_app(settings: Settings | None = None, *, model=None, search=None, web
         app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
     mascot = dist / 'mascot' if (dist / 'mascot').is_dir() else ROOT / 'frontend' / 'public' / 'mascot'
     app.mount('/mascot', StaticFiles(directory=mascot, check_dir=False), name='mascot')
+    station = dist / 'station' if (dist / 'station').is_dir() else ROOT / 'frontend' / 'public' / 'station'
+    app.mount('/station', StaticFiles(directory=station, check_dir=False), name='station')
 
     @app.get("/{path:path}", include_in_schema=False)
     async def frontend(path: str):

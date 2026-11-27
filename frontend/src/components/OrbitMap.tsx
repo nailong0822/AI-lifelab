@@ -6,8 +6,6 @@ import './orbit-map.css'
 
 const states: Record<string, string> = {pending:'待开始', in_progress:'进行中', blocked:'遇到困难', completed:'已完成', skipped:'已跳过'}
 type Artifact = 'probe' | 'crystal' | 'station' | 'observatory' | 'relay' | 'capsule'
-const names: Record<Artifact, string> = {probe:'探测卫星', crystal:'能量晶体', station:'空间站模块', observatory:'观测装置', relay:'通讯卫星', capsule:'记录舱'}
-const worlds = ['潮汐花园', '紫罗兰环', '极昼冰原', '月海档案', '赤砂之境']
 
 function artifactFor(task: PathTask): Artifact {
   // Title has priority: shared descriptions should not make every object identical.
@@ -94,7 +92,7 @@ function OrbitScene({stage, index, current, complete, progress, selectedTaskId, 
   return <div className={'planet-orbit-scene'+(complete?' orbit-stage-complete':'')} ref={scene}
     onPointerEnter={()=>{entered.current.pointer=true}} onPointerLeave={()=>{entered.current.pointer=false}}
     onFocusCapture={()=>{entered.current.focus=true}} onBlurCapture={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node)) entered.current.focus=false}}>
-    <header className="orbit-scene-header"><div><span>ORBIT / {String(index+1).padStart(2,'0')} · {worlds[index%5]}</span><strong>{current?'当前停靠':'阶段预览'} · {stage.title}</strong></div><button className="orbit-motion-toggle" onClick={()=>setPaused(!paused)} aria-label={paused?'继续轨道动画':'暂停轨道动画'} aria-pressed={paused}>{paused?<Play size={12}/>:<Pause size={12}/>}<span>{paused?'已静止':'慢速巡航'}</span></button></header>
+    <header className="orbit-scene-header"><div><span>ORBIT / {String(index+1).padStart(2,'0')}</span><strong>{current?'当前停靠':'阶段预览'} · {stage.title}</strong></div><button className="orbit-motion-toggle" onClick={()=>setPaused(!paused)} aria-label={paused?'继续轨道动画':'暂停轨道动画'} aria-pressed={paused}>{paused?<Play size={12}/>:<Pause size={12}/>}<span>{paused?'已静止':'慢速巡航'}</span></button></header>
     <svg className="action-orbit-lines" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><ellipse cx="500" cy="530" rx="350" ry="250"/><ellipse cx="500" cy="530" rx="392" ry="285"/><path d="M500 205V235M500 825V855M82 530H112M888 530H918"/></svg>
     {lit.length > 0 && <svg className="artifact-return-signal" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">{lit.map(taskId=>{
       const angle = -.65 + stage.tasks.findIndex(t=>t.id===taskId)*Math.PI*2/stage.tasks.length + phase.current
@@ -108,9 +106,9 @@ function OrbitScene({stage, index, current, complete, progress, selectedTaskId, 
       const angle = -.65 + i*Math.PI*2/stage.tasks.length + phase.current
       return <div key={task.id} className={'orbit-object state-'+status+(Math.sin(angle)<-.3?' object-north':'')+(selectedTaskId===task.id?' object-selected':'')+(lit.includes(task.id)?' object-just-lit':'')}
         style={{left:(50+35*Math.cos(angle))+'%',top:(53+25*Math.sin(angle))+'%'}}>
-        <button className="orbit-object-button" onClick={()=>selectTask(task.id)} title={`${task.title} · ${states[status]}`} aria-label={`行动${i+1}：${task.title}，${states[status]}，${names[kind]}${locked?'，需先完成前置任务':''}`} aria-pressed={selectedTaskId===task.id}>
+        <button className="orbit-object-button" onClick={()=>selectTask(task.id)} title={`${task.title} · ${states[status]}`} aria-label={`行动${i+1}：${task.title}，${states[status]}${locked?'，需先完成前置任务':''}`} aria-pressed={selectedTaskId===task.id}>
           <span className="artifact-radiance"/><span className="artifact-visual"><OrbitArtifact kind={kind}/></span><span className="artifact-number">{status==='completed'?<Check size={10}/>:locked?<LockKeyhole size={10}/>:String(i+1).padStart(2,'0')}</span>
-          <strong>{task.title}</strong><small><i/>{states[status]} · {names[kind]}</small>
+          <strong>{task.title}</strong><small><i/>{states[status]}</small>
         </button>
         {status==='blocked' && <button className="orbit-help-beacon" aria-label={`向随航伙伴求助：${task.title}`} onClick={()=>help(task)}><CircleHelp size={14}/></button>}
       </div>

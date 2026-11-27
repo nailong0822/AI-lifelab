@@ -5,7 +5,7 @@ import {
   ArrowRight, ArrowUpRight, BookOpen, Check, CheckCircle2, ChevronDown,
   Circle, CircleAlert, Clock3, ExternalLink, History, LoaderCircle,
   Menu, MessageSquare, Plus, Search, Sparkles, Square, WifiOff, X, Compass, Orbit, Radio,
-  GraduationCap, FlaskConical, BriefcaseBusiness, ScanLine, Satellite,
+  GraduationCap, FlaskConical, BriefcaseBusiness, ScanLine,
 } from 'lucide-react'
 import { api } from './api'
 import PathsPage, { Dialog, PathEntry } from './PathsPage'
@@ -14,10 +14,13 @@ import AdminPage from './AdminPage'
 import { AccountControls, useAuth } from './AuthProvider'
 import { JourneySteps, Starfield } from './components/Universe'
 import { useCompanion } from './components/CompanionDock'
+import StationEnvironment from './components/StationEnvironment'
 import { ThemeToggle } from './ThemeProvider'
 import { Button } from './components/ui/button'
 import type { Case, Health, Run, RunSummary, TraceEvent } from './types'
 import './station-home.css'
+import './components/station-environment.css'
+import './archive.css'
 
 const statusLabels: Record<string, string> = {
   running: '探索中', awaiting_input: '等待补充', finished: '已完成', failed: '执行受限', cancelled: '已停止',
@@ -36,10 +39,10 @@ const factLabels: Record<string, string> = {
 const coverageLabels: Record<string, string> = {
   clear: '证据明确', partial: '证据不完整', undisclosed: '结果未交代', missing: '尚未找到',
 }
-const examples = [
-  '生物专业研一，想在读期间准备 AI Agent 开发实习',
-  '工作两年，想了解跨专业申请研究生的真实经历',
-  '想从传统行业转向软件开发，如何低成本验证方向',
+const questionTemplates = [
+  '我目前的专业或工作背景是【当前背景】，所处阶段是【学历、年级或职业阶段】，想探索【目标专业或领域】，希望实现【具体目标】。我已有【相关基础】，需要考虑【时间、预算或其他限制】，希望了解相似经历和可行路径。',
+  '我目前处于【学历、年级或职业阶段】，想通过【升学或能力提升方向】实现【具体目标】。我已有【相关基础】，需要考虑【时间、预算或其他限制】，希望了解相似经历和适合自己的准备路径。',
+  '我目前的情况是【当前背景】，想尝试【感兴趣的方向】，但还不确定【最想验证的问题】。我愿意投入【时间和预算】，希望先通过一个小实验判断【是否适合或值得继续投入】。',
 ]
 const terminal = (run: Run) => ['finished', 'failed', 'cancelled'].includes(run.status)
 const timeText = (value: number) => new Date(value * 1000).toLocaleTimeString('zh-CN', {
@@ -57,7 +60,7 @@ function Sidebar({ history, close }: { history: RunSummary[]; close: () => void 
   return <aside className="sidebar">
     <Link className="brand" to="/retrieval" onClick={close}>
       <span className="brand-symbol"><Orbit size={25} strokeWidth={1.3} /></span>
-      <span><strong>人生实验室</strong><small className="station-brand-caption">LIFELAB / SPACE STATION</small></span>
+      <span><strong>人生实验室</strong><small className="station-brand-caption">LIFELAB</small></span>
     </Link>
     <Button asChild className="new-button"><Link to="/retrieval" onClick={close}><Plus size={17} />开启新的探索</Link></Button>
     <nav aria-label="主要导航">
@@ -72,7 +75,7 @@ function Sidebar({ history, close }: { history: RunSummary[]; close: () => void 
           {run.status === 'running' && <span className="recent-dot" />}
         </Link>) : <p className="history-empty">你的探索会保存在这里</p>}
     </div>
-    <div className="station-sidebar-footer"><span className="station-tiny-orbit"><Orbit size={20}/></span><div>每一次探索，都有迹可循。<small>YOUR NEXT POSSIBILITY</small></div></div>
+    <div className="station-sidebar-footer"><span className="station-tiny-orbit"><Orbit size={20}/></span><div>每一次探索，都有迹可循。</div></div>
   </aside>
 }
 
@@ -100,6 +103,7 @@ function Composer({ health, question, setQuestion, onSubmit, pending }: {
 
 function NewRun({ health }: { health?: Health }) {
   const [question, setQuestion] = useState('')
+  const [inputFocused, setInputFocused] = useState(false)
   const {openCompanion} = useCompanion()
   const navigate = useNavigate()
   const cache = useQueryClient()
@@ -107,14 +111,15 @@ function NewRun({ health }: { health?: Health }) {
     mutationFn: () => api.create(question),
     onSuccess: run => { cache.invalidateQueries({ queryKey: ['history'] }); navigate('/retrieval/' + run.id) },
   })
-  return <div className="station-home">
-    <div className="station-backdrop" aria-hidden="true"><div className="station-porthole"><div className="station-distant-planet"/><div className="station-horizon"/></div><div className="station-window-rib"/><div className="station-particles">{Array.from({length:22},(_,i)=><i key={i} style={{left:`${(i*37+11)%100}%`,top:`${(i*23+9)%100}%`,animationDelay:`-${i*.7}s`}}/>)}</div></div>
+  return <div className={'station-home station-cabin-home' + (inputFocused?' console-focused':'') + (create.isPending?' console-sending':'')}>
+    <StationEnvironment focused={inputFocused} sending={create.isPending}/>
     <div className="station-home-grid">
     <main className="station-input-module">
-      <div className="station-section-label"><span/>DEEP SPACE OBSERVATORY<small>01 / 探索舱</small></div>
+      <div className="station-section-label"><span/>DEEP SPACE OBSERVATORY</div>
       <h1>探索你的<em>下一步</em><span>。</span></h1>
       <p className="station-subtitle">从真实经历中寻找方向，让每一次选择更有依据。</p>
-      <div className="station-console">
+      <div className="station-console" onFocusCapture={()=>setInputFocused(true)} onBlurCapture={event=>{if(!event.currentTarget.contains(event.relatedTarget))setInputFocused(false)}} onPointerMove={event=>{if(event.pointerType==='touch')return;const rect=event.currentTarget.getBoundingClientRect();event.currentTarget.style.setProperty('--glass-x',`${(event.clientX-rect.left)/rect.width*100}%`);event.currentTarget.style.setProperty('--glass-y',`${(event.clientY-rect.top)/rect.height*100}%`)}}>
+      <span className="station-glass-corner corner-tl" aria-hidden="true"/><span className="station-glass-corner corner-tr" aria-hidden="true"/><span className="station-glass-corner corner-bl" aria-hidden="true"/><span className="station-glass-corner corner-br" aria-hidden="true"/>
       <div className="station-console-heading"><span><ScanLine size={15}/>探索指令</span><span className="station-console-indicator">{create.isPending?'正在发送':question.trim()?'已编辑':'等待输入'}</span></div>
       <Composer health={health} question={question} setQuestion={setQuestion} onSubmit={() => create.mutate()} pending={create.isPending} />
       <div className="station-source-strip"><span><Search size={12}/>知乎经历</span><span><BookOpen size={12}/>人生实验案例</span><span className="station-source-evidence"><CheckCircle2 size={12}/>保留来源证据</span></div>
@@ -122,16 +127,25 @@ function NewRun({ health }: { health?: Health }) {
       {create.error && <p className="inline-error" role="alert"><CircleAlert size={16} />{create.error.message}</p>}
       <div className="station-example-label">从一个想法开始<span>QUICK START</span></div>
       <div className="station-examples">
-        {examples.map((example,index) => {const Icon=[GraduationCap,BriefcaseBusiness,FlaskConical][index];return <button type="button" key={example} onClick={() => {setQuestion(example); document.querySelector<HTMLTextAreaElement>('.station-console textarea')?.focus()}}>
+        {questionTemplates.map((template,index) => {const Icon=[GraduationCap,BriefcaseBusiness,FlaskConical][index];return <button type="button" key={template} onClick={() => {
+          setQuestion(template)
+          requestAnimationFrame(()=>{
+            const input=document.querySelector<HTMLTextAreaElement>('.station-console textarea')
+            input?.focus()
+            const field=template.match(/【[^】]+】/)
+            if(field?.index!==undefined)input?.setSelectionRange(field.index,field.index+field[0].length)
+          })
+        }}>
           <Icon size={19} strokeWidth={1.4}/><span><strong>{['跨专业探索','升学与成长','低成本试错'][index]}</strong><small>{['寻找另一种可能','看看别人的选择','先做一次小实验'][index]}</small></span><ArrowUpRight size={14}/>
         </button>})}
       </div>
       <footer className="station-input-footer"><span><span className="station-status-dot"/>你的选择，始终由你掌舵</span><span>LIFELAB · EXPLORE YOUR POSSIBILITIES</span></footer>
     </main>
     <aside className="station-buddy-module" aria-label="奶龙随航伙伴展示区">
-      <div className="station-buddy-top"><span><Satellite size={14}/>随航伙伴</span><small>COMPANION / AI</small></div>
+      <button type="button" className="station-buddy-greeting" onClick={()=>openCompanion()}>我是随航伙伴奶龙，来点击我试试~</button>
       <div className="station-buddy-stage"><div className="station-buddy-orbit orbit-outer"/><div className="station-buddy-orbit orbit-inner"/><span className="station-reticle reticle-top"/><span className="station-reticle reticle-bottom"/>
-      <button className="station-mascot-button" onClick={()=>openCompanion()} aria-label="点击奶龙，打开随航伙伴"><img src="/mascot/nailoong-astronaut.png" alt="奶龙宇航员" draggable={false}/></button><div className="station-landing-pad"><i/><i/><i/></div><span className="station-buddy-coordinate">LIFE SUPPORT · ALWAYS HERE</span></div>
+      <div className="station-projection-light" aria-hidden="true"/>
+      <button className="station-mascot-button" onClick={()=>openCompanion()} aria-label="点击奶龙，打开随航伙伴"><img src="/mascot/nailoong-astronaut.png" alt="奶龙宇航员" draggable={false}/></button><div className="station-landing-pad"><i/><i/><i/></div></div>
       <div className="station-buddy-info"><span className="station-buddy-name">奶龙<span className="station-status-dot"/></span><p>随时聊聊，一起想办法。</p><Button onClick={()=>openCompanion()}><MessageSquare size={16}/>和奶龙聊聊<ArrowUpRight size={15}/></Button></div>
       <div className="station-buddy-bottom"><span>陪伴 · 解惑 · 记录成长</span><Radio size={13}/></div>
     </aside>
@@ -436,18 +450,31 @@ function RunPage() {
   </>
 }
 
-function HistoryPage({ history }: { history: RunSummary[] }) {
+function HistoryPage() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
-  const filtered = history.filter(run => run.question.toLocaleLowerCase().includes(search.toLocaleLowerCase()) && (filter === 'all' || run.status === filter))
+  const [page, setPage] = useState(1)
+  const archive = useQuery({queryKey:['archive',page,search,filter],
+    queryFn:({signal})=>api.archive(page,search,filter,signal),refetchInterval:10000})
+  const data = archive.data
+  const current = data?.page || 1
+  const pages = data?.pages || 1
+  const pageNumbers = [...new Set([1,current-1,current,current+1,pages])].filter(number=>number>=1 && number<=pages).sort((a,b)=>a-b)
   return <main className="history-page"><div className="archive-orbit" aria-hidden="true"><Orbit size={170} strokeWidth={.4}/></div><div className="eyebrow">FLIGHT ARCHIVE / 探索档案</div><h1>每一次思考，<br/><em>都留下自己的轨迹。</em></h1><p className="intro">回到一个念头，继续一段尚未结束的探索。</p>
-    <div className="archive-controls"><label><Search size={15}/><input aria-label="搜索探索记录" placeholder="寻找过去的探索…" value={search} onChange={event => setSearch(event.target.value)}/></label><div>{[['all', '全部'], ['finished', '已完成'], ['running', '探索中']].map(([value, label]) => <button key={value} aria-pressed={filter === value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{label}</button>)}</div></div>
-    {!history.length ? <div className="history-placeholder"><History size={30} /><h2>还没有探索记录</h2><Button asChild><Link to="/retrieval">开始第一次探索<ArrowRight size={16} /></Link></Button></div>
-      : <div className="history-table">{filtered.map(run => <Link key={run.id} to={'/retrieval/' + run.id}>
+    <div className="archive-controls"><label><Search size={15}/><input aria-label="搜索探索记录" placeholder="寻找过去的探索…" value={search} maxLength={500} onChange={event => {setSearch(event.target.value);setPage(1)}}/></label><div>{[['all', '全部'], ['finished', '已完成'], ['running', '探索中']].map(([value, label]) => <button key={value} aria-pressed={filter === value} className={filter === value ? 'active' : ''} onClick={() => {setFilter(value);setPage(1)}}>{label}</button>)}</div></div>
+    {archive.isPending && <div className="archive-loading" role="status"><LoaderCircle size={20} className="spin"/>正在读取探索档案…</div>}
+    {archive.isError && <div className="inline-error" role="alert"><CircleAlert size={16}/>{archive.error.message}<Button variant="ghost" size="sm" onClick={()=>void archive.refetch()}>重试</Button></div>}
+    {data && !data.total && (search.trim() || filter!=='all' ? <p className="archive-empty">没有找到符合条件的探索，试试其他关键词或筛选。</p> : <div className="history-placeholder"><History size={30} /><h2>还没有探索记录</h2><Button asChild><Link to="/retrieval">开始第一次探索<ArrowRight size={16} /></Link></Button></div>)}
+    {data && data.total>0 && <><div className="history-table" aria-busy={archive.isFetching}>{data.items.map(run => <Link key={run.id} to={'/retrieval/' + run.id}>
         <span className="history-record-icon"><Search size={19} /></span><div><h2>{run.question}</h2><time>{new Date(run.created_at * 1000).toLocaleString('zh-CN')}</time></div>
         <Status status={run.status} /><ArrowRight size={18} />
-      </Link>)}</div>}
-    {!!history.length && !filtered.length && <p className="archive-empty">没有找到符合条件的探索，试试其他关键词。</p>}
+      </Link>)}</div>
+      <nav className="archive-pagination" aria-label="探索档案分页">
+        <span className="archive-page-count" aria-live="polite">共 {data.total} 条 · 每页 10 条 · 当前 {(current-1)*10+1}–{Math.min(current*10,data.total)} 条</span>
+        <div><button disabled={archive.isFetching || current===1} onClick={()=>setPage(current-1)} aria-label="上一页">上一页</button>
+        {pageNumbers.map((number,index)=><span key={number} className="archive-page-number">{index>0 && number-pageNumbers[index-1]>1 && <span className="archive-page-gap" aria-hidden="true">…</span>}<button disabled={archive.isFetching} aria-label={`第 ${number} 页`} aria-current={current===number?'page':undefined} onClick={()=>setPage(number)}>{number}</button></span>)}
+        <button disabled={archive.isFetching || current===pages} onClick={()=>setPage(current+1)} aria-label="下一页">下一页</button></div>
+      </nav></>}
   </main>
 }
 
@@ -475,7 +502,7 @@ export default function App() {
   if (admin) return <><Starfield/><AdminPage/></>
   if (exploring) return <><Starfield/><Routes><Route path="/explore/:runId" element={<PathsPage />} /></Routes></>
   if (sharing) return <><Starfield/><Routes><Route path="/shared-cases/:caseId" element={<SharedCasePage/>}/></Routes></>
-  return <><Starfield/><div className={'app-shell' + (stationHome?' station-shell':'')}>
+  return <>{!stationHome && <Starfield/>}<div className={'app-shell' + (stationHome?' station-shell':'')}>
     {menuOpen && <button className="mobile-overlay" aria-label="关闭导航" onClick={() => setMenuOpen(false)} />}
     <div id="main-navigation" className={menuOpen ? 'sidebar-wrap open' : 'sidebar-wrap'}><Sidebar history={history.data || []} close={() => setMenuOpen(false)} /></div>
     <div className="app-body" inert={menuOpen}>
@@ -491,7 +518,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/retrieval" replace />} />
         <Route path="/retrieval" element={<NewRun health={health.data} />} />
         <Route path="/retrieval/:runId" element={<RunPage />} />
-        <Route path="/history" element={<HistoryPage history={history.data || []} />} />
+        <Route path="/history" element={<HistoryPage />} />
         <Route path="*" element={<Navigate to="/retrieval" replace />} />
       </Routes>
     </div>

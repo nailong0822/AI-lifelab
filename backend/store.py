@@ -182,6 +182,30 @@ class Store:
         keys = ["id", "question", "created_at", "updated_at", "status", "result_status", "stop_reason"]
         return [{key: run.get(key) for key in keys} for run in (json.loads(row[0]) for row in rows)]
 
+    def archive(self, owner_id, *, page=1, search='', status='all'):
+        page_size = 10
+        conditions = ["json_extract(data,'$.owner_id')=?"]
+        parameters = [owner_id]
+        if search.strip():
+            conditions.append("instr(casefold(json_extract(data,'$.question')),?)>0")
+            parameters.append(search.strip().casefold())
+        if status != 'all':
+            conditions.append("json_extract(data,'$.status')=?")
+            parameters.append(status)
+        where = ' AND '.join(conditions)
+        with self.connection() as db:
+            db.create_function('casefold', 1, lambda value: (value or '').casefold(), deterministic=True)
+            # Count and page use one read snapshot if records change concurrently.
+            db.execute('BEGIN')
+            total = db.execute(f'SELECT count(*) FROM runs WHERE {where}', parameters).fetchone()[0]
+            pages = max(1, (total + page_size - 1) // page_size)
+            current = min(max(1, page), pages)
+            rows = db.execute(f'SELECT data FROM runs WHERE {where} ORDER BY created_at DESC,rowid DESC LIMIT ? OFFSET ?',
+                              [*parameters, page_size, (current - 1) * page_size]).fetchall()
+        keys = ('id', 'question', 'created_at', 'updated_at', 'status', 'result_status', 'stop_reason')
+        return {'items': [{key: run.get(key) for key in keys} for run in (json.loads(row[0]) for row in rows)],
+                'total': total, 'page': current, 'page_size': page_size, 'pages': pages}
+
     def mutate(self, run_id: str, action: Callable, *, event_type: str | None = None,
                node: str = "", title: str = "", payload: dict | None = None,
                span_id: str | None = None, query_id: str | None = None):
