@@ -1,0 +1,60 @@
+.transfer-journey{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:transparent;color:#d9eaf3;overflow:hidden}
+.transfer-journey::backdrop{background:#020917df;backdrop-filter:blur(14px)}
+.transfer-journey[open]{display:flex;align-items:center;justify-content:center}
+.transfer-journey-inner{--transfer-distance:clamp(100px,24vw,290px);position:relative;width:min(1060px,100%);padding:30px 24px;box-sizing:border-box;isolation:isolate;animation:transfer-surface-in .25s ease-out both}
+.transfer-journey-inner:before{content:'';position:absolute;inset:15%;z-index:-1;background:radial-gradient(ellipse,color-mix(in srgb,var(--transfer-color) 12%,transparent),transparent 65%);pointer-events:none}
+.transfer-journey header{text-align:center;max-width:760px;margin:0 auto;position:relative;z-index:3}
+.transfer-journey-tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:2px;color:#9bc8d6}
+.transfer-journey h2{font-size:clamp(24px,3vw,38px);font-weight:400;letter-spacing:-.5px;line-height:1.5;margin:16px 0 10px;overflow-wrap:anywhere}
+.transfer-journey header p{font-size:14px;color:#a4bbc9;line-height:1.7;margin:0}
+.transfer-space{position:relative;height:min(430px,48dvh);min-height:250px;isolation:isolate;perspective:1000px}
+.transfer-world{position:absolute;width:clamp(155px,23vw,265px);text-align:center;top:52%;transform:translate(-50%,-50%);z-index:1;pointer-events:none}
+.transfer-world>img{display:block;width:100%;filter:drop-shadow(0 0 22px color-mix(in srgb,var(--transfer-color) 20%,transparent))}
+.transfer-world>span{display:block;max-width:240px;margin:-10px auto 0;font-size:12px;line-height:1.7;color:#a6c4d4;overflow-wrap:anywhere}
+.world-from{left:19%;top:62%;animation:transfer-world-depart 3.65s ease both}
+.world-to{left:81%;top:36%;animation:transfer-world-arrive 3.65s ease both}
+.transfer-flight-path{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.transfer-flight-path path{fill:none;stroke:#aedfeb30;stroke-width:1.2;stroke-dasharray:3 10}
+.transfer-flight-path .transfer-path-light{stroke:var(--transfer-color);stroke-dasharray:70 900;opacity:.8;animation:transfer-path-run 2.7s .7s ease-in-out both;filter:drop-shadow(0 0 5px var(--transfer-color))}
+.transfer-traveler{position:absolute;left:50%;top:50%;width:200px;height:250px;margin:-125px 0 0 -100px;z-index:4;animation:transfer-pod-flight 3.65s cubic-bezier(.35,.05,.35,1) both;will-change:transform}
+.transfer-craft{width:100%;height:100%;filter:drop-shadow(0 14px 24px #02081599) drop-shadow(0 0 14px #80e9ee22)}
+.transfer-pod{width:100%;height:100%;overflow:visible}
+.transfer-pod-passenger{transform-box:fill-box;transform-origin:center;animation:transfer-passenger-board 3.65s ease both}
+.transfer-pod-thrust{transform-origin:120px 232px;animation:transfer-thruster 3.65s ease both}
+.transfer-pod-energy{filter:drop-shadow(0 0 4px #97fff5)}
+.transfer-pod-door{animation:transfer-door-close 3.65s ease both;transform-box:fill-box}
+.transfer-pod-door.door-left{--door-slide:-12px}
+.transfer-pod-door.door-right{--door-slide:12px}
+.transfer-boarding-mascot{position:absolute;left:calc(50% - var(--transfer-distance));top:calc(50% + 15px);height:140px;width:122px;object-fit:contain;margin:-70px 0 0 -115px;z-index:5;animation:transfer-mascot-board 3.65s ease both;pointer-events:none}
+.transfer-arrival-ring{position:absolute;left:81%;top:44%;width:120px;height:36px;transform:translate(-50%,-50%);border:1px solid var(--transfer-color);border-radius:50%;opacity:0;box-shadow:0 0 22px color-mix(in srgb,var(--transfer-color) 40%,transparent);animation:transfer-arrival-pulse 3.65s ease-out both;pointer-events:none}
+.transfer-warp{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:0;animation:transfer-warp-envelope 3.65s ease both}
+.transfer-warp i{position:absolute;left:50%;top:50%;width:110px;height:1px;background:linear-gradient(90deg,transparent,#b5e9f5c9,transparent);transform-origin:0 50%;animation:transfer-warp-ray .8s var(--ray-delay) linear infinite;box-shadow:0 0 5px #9addf04d}
+.transfer-journey footer{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;gap:30px;margin:12px auto 0;font-size:12px;color:#a8c3d1}
+.transfer-journey footer>span{display:flex;align-items:center;gap:8px}
+.transfer-journey footer svg{color:var(--transfer-color)}
+.transfer-journey footer button{border:1px solid #d6eaff38;border-radius:20px;padding:9px 17px;background:#b2dcf20a;color:#bdd2de;font:inherit;cursor:pointer}
+.transfer-journey footer button:hover{background:#b2dcf21a;border-color:#d6eaff75}
+.transfer-journey footer button:focus-visible{outline:2px solid #95e1e5;outline-offset:4px}
+@keyframes transfer-surface-in{from{opacity:0}to{opacity:1}}
+@keyframes transfer-pod-flight{0%,23%{transform:translate3d(calc(-1 * var(--transfer-distance)),65px,0) scale(.68) rotate(-4deg)}38%{transform:translate3d(calc(-.45 * var(--transfer-distance)),20px,0) scale(.94) rotate(9deg)}58%{transform:translate3d(20px,-38px,0) scale(1.04) rotate(8deg)}78%{transform:translate3d(calc(.83 * var(--transfer-distance)),-56px,0) scale(.76) rotate(4deg)}92%,100%{transform:translate3d(var(--transfer-distance),-48px,0) scale(.68) rotate(0)}}
+@keyframes transfer-passenger-board{0%,10%{opacity:0;transform:translate(-25px,15px) scale(.85)}23%,100%{opacity:1;transform:translate(0,0) scale(1)}}
+@keyframes transfer-mascot-board{0%,5%{opacity:1;transform:translate(0,0) scale(.85)}21%{opacity:0;transform:translate(88px,-8px) scale(.5)}100%{opacity:0;transform:translate(88px,-8px) scale(.5)}}
+@keyframes transfer-door-close{0%,13%{transform:translateX(var(--door-slide));opacity:.25}26%,84%{transform:translateX(0);opacity:1}100%{transform:translateX(var(--door-slide));opacity:.3}}
+@keyframes transfer-thruster{0%,18%{opacity:0;transform:scaleY(.1)}30%{opacity:1;transform:scaleY(1.3)}72%{opacity:.9;transform:scaleY(1.1)}92%,100%{opacity:.2;transform:scaleY(.35)}}
+@keyframes transfer-world-depart{0%,20%{opacity:1;scale:1}55%,100%{opacity:.3;scale:.82}}
+@keyframes transfer-world-arrive{0%,25%{opacity:.38;scale:.8}85%,100%{opacity:1;scale:1.06}}
+@keyframes transfer-path-run{from{stroke-dashoffset:70;opacity:0}25%{opacity:.9}to{stroke-dashoffset:-800;opacity:.2}}
+@keyframes transfer-warp-ray{from{transform:rotate(var(--ray-angle)) translateX(45px) scaleX(.2);opacity:0}35%{opacity:.7}to{transform:rotate(var(--ray-angle)) translateX(var(--ray-distance)) scaleX(1.5);opacity:0}}
+@keyframes transfer-warp-envelope{0%,24%{opacity:0}38%,70%{opacity:1}90%,100%{opacity:0}}
+@keyframes transfer-arrival-pulse{0%,72%{opacity:0;scale:.4}82%{opacity:.9;scale:1}100%{opacity:0;scale:2}}
+.flight-page.is-transferring .flight-buddy{visibility:hidden}
+.transfer-journey.reduced-motion *{animation:none!important}
+.transfer-journey.reduced-motion .transfer-traveler{transform:translate3d(var(--transfer-distance),-48px,0) scale(.68)}
+.transfer-journey.reduced-motion .transfer-boarding-mascot,.transfer-journey.reduced-motion .transfer-warp,.transfer-journey.reduced-motion .transfer-pod-thrust{display:none}
+html[data-theme=light] .transfer-journey::backdrop{background:#e9f2faf2}
+html[data-theme=light] .transfer-journey{color:#294c66}
+html[data-theme=light] .transfer-journey header p,html[data-theme=light] .transfer-journey footer,html[data-theme=light] .transfer-world>span,html[data-theme=light] .transfer-journey-tag{color:#54768a}
+html[data-theme=light] .transfer-journey footer button{color:#45677e;border-color:#7297af66;background:#fff8}
+@media(max-width:600px){.transfer-journey-inner{--transfer-distance:clamp(90px,25vw,145px);padding:26px 15px}.transfer-journey h2{font-size:23px;margin:12px 0 9px}.transfer-journey-tag{font-size:11px;letter-spacing:1px}.transfer-journey header p{font-size:12px}.transfer-space{height:320px;min-height:0}.transfer-world{width:155px}.world-from{left:17%;top:68%}.world-to{left:83%;top:31%}.transfer-world>span{max-width:125px;font-size:10px;line-height:1.6}.transfer-traveler{width:155px;height:194px;margin:-97px 0 0 -77.5px}.transfer-boarding-mascot{width:94px;height:106px;margin:-38px 0 0 -83px}.transfer-journey footer{gap:16px;font-size:10px}.transfer-journey footer button{padding:9px 12px}.transfer-arrival-ring{left:83%;top:39%;width:80px}.transfer-flight-path{opacity:.6}}
+@media(max-height:600px){.transfer-journey-inner{padding:15px}.transfer-space{height:min(250px,40dvh);min-height:120px}.transfer-journey h2{font-size:24px;margin:8px 0}.transfer-journey header p{margin:0}.transfer-journey footer{margin:0}}
+@media(prefers-reduced-motion:reduce){.transfer-journey *{animation:none!important}.transfer-journey .transfer-traveler{transform:translate3d(var(--transfer-distance),-48px,0) scale(.68)}.transfer-journey .transfer-boarding-mascot,.transfer-journey .transfer-warp,.transfer-journey .transfer-pod-thrust{display:none}}

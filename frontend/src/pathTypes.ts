@@ -2,7 +2,7 @@ export interface Basis { kind: 'case' | 'synthesis' | 'hypothesis'; explanation:
 export interface Candidate { id: string; title: string; goal: string; approach: string; suitable_conditions: string[]; first_action: string; effort: string; difficulties: string[]; basis: Basis }
 export interface PathTask { id: string; title: string; kind: string; description: string; output: string; completion_criteria: string; depends_on: string[]; effort_hours: number | null; skills: string[]; help_hint: string; basis: Basis }
 export interface Stage { id: string; title: string; objective: string; completion_criteria: string; depends_on: string[]; effort_hours_min: number | null; effort_hours_max: number | null; already_completed: boolean; basis: Basis; tasks: PathTask[] }
-export interface Plan { title: string; goal: string; stages: Stage[]; limitations: string[]; version: number }
+export interface Plan { title: string; goal: string; stages: Stage[]; limitations: string[]; version: number; route_id?:string; candidate_id?:string|null }
 export interface PathRun {
   id: string; retrieval_run_id: string; status: string; question: string; version: number; journey_status: string;
   candidates: Candidate[]; plan: Plan | null; pending_revision: Plan | null; current_stage_id: string | null;

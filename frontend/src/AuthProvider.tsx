@@ -128,8 +128,8 @@ export function AccountControls() {
   const [busy,setBusy]=useState(false)
   if(!user)return null
   return <div className="account-controls">
-    <button onClick={openKey}><KeyRound size={15}/><span>模型设置</span>{!user.model_configured && <i aria-label="尚未配置"/>}</button>
-    {user.role!=='user' && <Link to="/admin"><Shield size={15}/><span>管理后台</span></Link>}
+    <button aria-label="模型设置" onClick={openKey}><KeyRound size={15}/><span>模型设置</span>{!user.model_configured && <i aria-label="尚未配置"/>}</button>
+    {user.role!=='user' && <Link aria-label="管理后台" to="/admin"><Shield size={15}/><span>管理后台</span></Link>}
     <span className="account-name" title={user.username}>{user.username}</span>
     <button aria-label="退出登录" title="退出登录" disabled={busy} onClick={async()=>{
       setBusy(true)

@@ -1,0 +1,28 @@
+.companion-clarification-notice{position:fixed;inset:0;z-index:110;pointer-events:none;overflow:hidden}
+.clarify-notice-flight{position:absolute;left:0;top:0;width:min(570px,calc(100vw - 32px));opacity:0;will-change:transform,opacity}
+.clarify-notice-bubble{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;box-sizing:border-box;width:100%;min-height:172px;padding:34px 30px 29px;border:1px solid #d8f8ff91;border-radius:45px;background:linear-gradient(125deg,#234c68ed,#293c64ed 52%,#594667e8);color:#effbff;box-shadow:inset 0 1px 0 #ffffff8c,inset 0 -12px 26px #a4a4ff13,0 0 0 5px #c6f5ff09,0 0 45px #91dbef26,0 15px 60px #08152955;backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);cursor:pointer;pointer-events:auto;text-align:center;font-family:inherit;isolation:isolate}
+.clarify-notice-bubble:after{content:'';position:absolute;bottom:-8px;right:42px;width:16px;height:16px;background:#514265;border-right:1px solid #d8f8ff7a;border-bottom:1px solid #d8f8ff7a;transform:rotate(45deg);border-radius:0 0 5px 0;z-index:-1}
+.clarify-notice-bubble:focus-visible{outline:2px solid #8ce8ef;outline-offset:6px}
+.clarify-notice-bubble strong{font-size:22px;line-height:1.55;font-weight:500;letter-spacing:.1px}
+.clarify-notice-description{display:block;font-size:14px;line-height:1.9;color:#c9e2ef;max-width:490px}
+.clarify-notice-close{position:absolute;top:18px;right:20px;opacity:.6}
+.clarify-notice-gloss{position:absolute;inset:7px 16px auto;height:42%;border-radius:35px 35px 50% 50%;background:linear-gradient(180deg,#ffffff14,transparent);pointer-events:none;z-index:-1}
+.clarify-notice-spark{position:absolute;left:22px;top:18px;color:#b0f1f0;opacity:.8}
+.clarify-notice-explosion{position:absolute;inset:0;pointer-events:none}
+.clarify-notice-explosion i{position:absolute;left:50%;top:50%;width:var(--burst-size);height:var(--burst-size);border:1px solid var(--burst-hue);background:color-mix(in srgb,var(--burst-hue) 28%,transparent);border-radius:50%;opacity:0;box-shadow:0 0 12px color-mix(in srgb,var(--burst-hue) 35%,transparent)}
+.clarify-notice-ripple{position:absolute;inset:8px;border:1px solid #c0efffaa;border-radius:45px;opacity:0}
+.is-bursting .clarify-notice-bubble{pointer-events:none;animation:clarify-bubble-pop .4s cubic-bezier(.2,.6,.4,1) forwards}
+.is-bursting .clarify-notice-ripple{animation:clarify-bubble-ripple .5s ease-out forwards}
+.is-bursting .clarify-notice-explosion i{animation:clarify-bubble-particle .55s cubic-bezier(.1,.5,.35,1) forwards}
+@keyframes clarify-bubble-pop{0%{opacity:1;transform:scale(1)}32%{opacity:.95;transform:scale(1.055)}100%{opacity:0;transform:scale(1.15);filter:blur(3px)}}
+@keyframes clarify-bubble-ripple{0%{opacity:0;transform:scale(.96)}25%{opacity:.65}100%{opacity:0;transform:scale(1.3,1.6)}}
+@keyframes clarify-bubble-particle{0%{opacity:0;transform:translate(-50%,-50%) scale(.25)}15%{opacity:.9}100%{opacity:0;transform:translate(calc(-50% + var(--burst-x)),calc(-50% + var(--burst-y))) scale(.6)}}
+.clarify-notice-announcement{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+body:has(.companion-clarification-notice) .companion-greeting{visibility:hidden}
+html[data-theme=light] .clarify-notice-bubble{background:linear-gradient(125deg,#effcffed,#f0f0ffed 55%,#fff1faed);border-color:#fff;color:#294a63;box-shadow:inset 0 1px 0 #fff,0 0 0 5px #ffffff36,0 0 40px #a7c8e54d,0 18px 55px #59749130}
+html[data-theme=light] .clarify-notice-description{color:#54758c}
+html[data-theme=light] .clarify-notice-bubble:after{background:#f8edf9;border-color:#fff}
+html[data-theme=light] .clarify-notice-spark{color:#5c9eae}
+html[data-theme=light] .clarify-notice-ripple{border-color:#9ec8e0}
+@media(max-width:600px){.clarify-notice-bubble{padding:34px 23px 25px;border-radius:32px;min-height:170px;gap:12px}.clarify-notice-bubble strong{font-size:18px;max-width:290px}.clarify-notice-description{font-size:13px;line-height:1.85}.clarify-notice-close{top:15px;right:16px}.clarify-notice-spark{top:16px;left:17px}.clarify-notice-spark svg{width:16px;height:16px}.clarify-notice-ripple{border-radius:32px}}
+@media(prefers-reduced-motion:reduce){.clarify-notice-flight{will-change:opacity}.is-bursting .clarify-notice-bubble{animation:clarify-bubble-fade .1s forwards}.is-bursting .clarify-notice-ripple,.is-bursting .clarify-notice-explosion i{animation:none}@keyframes clarify-bubble-fade{to{opacity:0}}}

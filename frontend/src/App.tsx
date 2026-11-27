@@ -14,6 +14,7 @@ import AdminPage from './AdminPage'
 import { AccountControls, useAuth } from './AuthProvider'
 import { JourneySteps, Starfield } from './components/Universe'
 import { useCompanion } from './components/CompanionDock'
+import { ClarificationBubble } from './components/ClarificationBubble'
 import StationEnvironment from './components/StationEnvironment'
 import { ThemeToggle } from './ThemeProvider'
 import { Button } from './components/ui/button'
@@ -175,16 +176,20 @@ function ProfileView({ run }: { run: Run }) {
 
 function Clarification({ run }: { run: Run }) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
+  const form = useRef<HTMLFormElement>(null)
   const cache = useQueryClient()
   const clarification = run.clarification!
   const resume = useMutation({
     mutationFn: () => api.resume(run.id, clarification.id, answers),
     onSuccess: () => { cache.invalidateQueries({ queryKey: ['run', run.id] }); cache.invalidateQueries({ queryKey: ['history'] }) },
   })
-  return <form className="clarification" onSubmit={event => { event.preventDefault(); resume.mutate() }}>
+  return <form ref={form} className="clarification" onSubmit={event => { event.preventDefault(); resume.mutate() }}>
+    <ClarificationBubble requestKey={run.id+':'+clarification.id} onFill={()=>{
+      form.current?.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})
+      Array.from(form.current?.querySelectorAll('textarea')||[]).find(field=>!field.value.trim())?.focus({preventScroll:true})
+    }}/>
     <span className="clarification-icon"><MessageSquare size={20} /></span>
-    <h2>补充一点信息，让探索更贴近你</h2>
-    <p>这些信息会帮助确定检索方向，暂不确定也可以直接写下来。</p>
+    <h2>补充探索信息</h2>
     {clarification.questions.map(question =>
       <label key={question.id}>{question.question}<small>{question.reason}</small>
         <textarea required maxLength={2000} value={answers[question.id] || ''} placeholder="写下你的情况，或填写“暂不确定”"
@@ -502,7 +507,7 @@ export default function App() {
   if (admin) return <><Starfield/><AdminPage/></>
   if (exploring) return <><Starfield/><Routes><Route path="/explore/:runId" element={<PathsPage />} /></Routes></>
   if (sharing) return <><Starfield/><Routes><Route path="/shared-cases/:caseId" element={<SharedCasePage/>}/></Routes></>
-  return <>{!stationHome && <Starfield/>}<div className={'app-shell' + (stationHome?' station-shell':'')}>
+  return <>{!stationHome && <Starfield/>}<div className={'app-shell' + (stationHome?' station-shell':'') + (location.pathname==='/history'?' archive-shell':'')}>
     {menuOpen && <button className="mobile-overlay" aria-label="关闭导航" onClick={() => setMenuOpen(false)} />}
     <div id="main-navigation" className={menuOpen ? 'sidebar-wrap open' : 'sidebar-wrap'}><Sidebar history={history.data || []} close={() => setMenuOpen(false)} /></div>
     <div className="app-body" inert={menuOpen}>

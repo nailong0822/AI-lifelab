@@ -1,48 +1,11 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Check, CircleHelp, LockKeyhole, Pause, Play, Radio, Sparkles } from 'lucide-react'
 import type { PathRun, PathTask, Stage } from '../pathTypes'
 import { planetImage } from '../pathGraphics'
 import './orbit-map.css'
+import { OrbitArtifact, artifactFor } from './OrbitArtifact'
 
 const states: Record<string, string> = {pending:'待开始', in_progress:'进行中', blocked:'遇到困难', completed:'已完成', skipped:'已跳过'}
-type Artifact = 'probe' | 'crystal' | 'station' | 'observatory' | 'relay' | 'capsule'
-
-function artifactFor(task: PathTask): Artifact {
-  // Title has priority: shared descriptions should not make every object identical.
-  for (const text of [task.title, task.description + ' ' + task.skills.join(' ')]) {
-    if (/投递|面试|联系|沟通|寻求|反馈|交流/.test(text)) return 'relay'
-    if (/复盘|总结|整理|清单|日志|记录|归档/.test(text)) return 'capsule'
-    if (/学习|课程|语法|掌握|知识|阅读|练习/.test(text)) return 'crystal'
-    if (/查询|查阅|搜集|收集|政策|调研|检索|搜寻/.test(text)) return 'probe'
-    if (/测试|验证|核验|对比|复现|排查|实验/.test(text)) return 'observatory'
-    if (/项目|开发|编写|搭建|制作|实现|作品|代码/.test(text)) return 'station'
-  }
-  return 'probe'
-}
-
-/** Purpose-built miniature objects, sharing metal, glass and energy materials. */
-export function OrbitArtifact({kind}: {kind: Artifact}) {
-  const id = useId().replace(/[^a-zA-Z0-9]/g, '')
-  const fill = `url(#metal${id})`, glass = `url(#glass${id})`
-  return <svg viewBox="0 0 96 96" className={'artifact-art artifact-' + kind} aria-hidden="true"><defs>
-    <linearGradient id={'metal'+id} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f0f2e5"/><stop offset=".45" stopColor="#a9bec3"/><stop offset="1" stopColor="#4e667d"/></linearGradient>
-    <linearGradient id={'glass'+id} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#a5dddd"/><stop offset=".5" stopColor="#537d9b"/><stop offset="1" stopColor="#283e65"/></linearGradient>
-  </defs><ellipse cx="48" cy="80" rx="25" ry="4" className="artifact-ground"/>
-    {(kind === 'probe' || kind === 'relay') && <g transform={kind === 'relay' ? 'rotate(-13 48 48)' : 'rotate(17 48 48)'}>
-      <path d="M29 46H67" stroke="#a8c6cb" strokeWidth="4"/>
-      <g className="artifact-wing wing-left"><path d="M4 32L29 35V61L4 58Z" fill={glass} stroke="#92b5c2"/><path d="M12 33V59M21 34V60M5 41L28 44M5 49L28 52" fill="none" stroke="#c3dbe2" strokeWidth=".8" opacity=".6"/></g>
-      <g className="artifact-wing wing-right"><path d="M67 35L92 32V58L67 61Z" fill={glass} stroke="#92b5c2"/><path d="M75 34V60M83 33V59M68 44L91 41M68 52L91 49" fill="none" stroke="#c3dbe2" strokeWidth=".8" opacity=".6"/></g>
-      <path d="M35 32L48 27 61 34V64L48 70 35 62Z" fill={fill} stroke="#73909e"/>
-      <path d="M48 28V68M36 35L48 41 60 35" fill="none" stroke="#f5f5db" strokeOpacity=".6"/>
-      <circle cx="48" cy="53" r="5" fill={glass}/><circle cx="48" cy="53" r="2" className="artifact-light"/>
-      {kind === 'relay' ? <><path d="M49 29L55 15M42 14Q53 30 68 19Z" fill={fill} stroke="#8aaab6"/><path className="artifact-signal" d="M62 10Q73 12 75 22M66 4Q81 7 83 22" fill="none" strokeWidth="2"/></> : <><path d="M42 30L40 19M37 19H44" stroke="#adc2c5" strokeWidth="2"/><circle cx="40" cy="17" r="2" className="artifact-light"/></>}
-    </g>}
-    {kind === 'crystal' && <><ellipse cx="48" cy="73" rx="23" ry="7" fill={fill}/><ellipse cx="48" cy="71" rx="20" ry="5" fill={glass}/><g className="artifact-core"><path d="M48 9L68 34 62 61 48 72 31 57 28 33Z" fill={glass} stroke="#bde7e3"/><path d="M48 9L43 36 48 72 57 35Z" fill="#c0f4ed" opacity=".65"/><path d="M28 33L43 36 68 34M31 57L43 36 62 61" fill="none" stroke="#cff3ef" opacity=".6"/></g><path className="artifact-signal" d="M16 38V46M12 42H20M78 20V28M74 24H82" fill="none" strokeWidth="1.5"/></>}
-    {kind === 'station' && <g transform="rotate(-12 48 48)"><path d="M14 53H81M48 23V72" stroke="#9cb9c4" strokeWidth="5"/><g className="artifact-wing wing-left"><path d="M4 30H28V48H4Z" fill={glass} stroke="#adcbd5"/><path d="M12 31V47M20 31V47M5 39H27" stroke="#b5d4df" strokeWidth=".8"/></g><g className="artifact-wing wing-right"><path d="M68 30H92V48H68Z" fill={glass} stroke="#adcbd5"/><path d="M76 31V47M84 31V47M69 39H91" stroke="#b5d4df" strokeWidth=".8"/></g><path d="M34 35L48 28 62 35V64L48 72 34 64Z" fill={fill} stroke="#7998a8"/><path d="M35 36L48 43 61 36M48 43V70" fill="none" stroke="#e3efe6"/><path d="M40 16L48 12 56 16V29L48 33 40 29Z" fill={fill}/><g className="artifact-module"><path d="M13 50L31 44 36 51V66L18 71 13 65Z" fill={fill}/><path d="M61 51L78 45 84 52V66L66 72 61 65Z" fill={fill}/><path d="M17 56L30 52M66 57L78 53" stroke="#516b81" strokeWidth="3"/></g><circle cx="49" cy="53" r="4" className="artifact-light"/></g>}
-    {kind === 'observatory' && <><path d="M47 52L26 79M50 51L71 79M49 54V80" stroke="#9bb2bd" strokeWidth="4"/><path d="M32 35L43 23 73 43 61 60Z" fill={fill} stroke="#819eaf"/><ellipse cx="70" cy="48" rx="11" ry="14" transform="rotate(34 70 48)" fill={glass} stroke="#c9e2e3" strokeWidth="3"/><ellipse cx="70" cy="48" rx="5" ry="8" transform="rotate(34 70 48)" className="artifact-light"/><path d="M37 34L31 29 37 22 44 27" fill={glass}/><path className="artifact-signal" d="M75 21L81 15M81 29L90 26" fill="none" strokeWidth="2"/><circle cx="48" cy="57" r="5" fill={fill}/></>}
-    {kind === 'capsule' && <g transform="rotate(15 48 48)"><path d="M31 24Q48 11 65 24V70Q48 85 31 70Z" fill={fill} stroke="#92acb6"/><ellipse cx="48" cy="24" rx="17" ry="7" fill="#e0e8de"/><path d="M32 31Q48 39 64 31M32 65Q48 73 64 65" fill="none" stroke="#718c9c" strokeWidth="2"/><rect x="39" y="41" width="18" height="19" rx="3" fill={glass}/><path d="M43 46H53M43 50H53M43 54H49" stroke="#d7efe4" strokeWidth="1.5"/><circle cx="48" cy="73" r="2" className="artifact-light"/></g>}
-  </svg>
-}
 
 function OrbitScene({stage, index, current, complete, progress, selectedTaskId, selectTask, help}: {
   stage: Stage; index: number; current: boolean; complete: boolean; progress: PathRun['progress']; selectedTaskId: string;

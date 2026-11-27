@@ -18,8 +18,8 @@ function ReplyText({text}: {text: string}) {
   })}</>
 }
 
-export function CompanionPanel({open, path, task, stageId, close, unlink, refreshPath, contextControls}: {
-  open: boolean; path: PathRun | null; contextControls?: ReactNode; task: PathTask|null; stageId?: string; close: () => void; unlink: () => void; refreshPath: () => void
+export function CompanionPanel({open, path, task, stageId, close, unlink, refreshPath, contextControls,journey=false}: {
+  open: boolean; path: PathRun | null; contextControls?: ReactNode; journey?:boolean;task: PathTask|null; stageId?: string; close: () => void; unlink: () => void; refreshPath: () => void
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const log = useRef<HTMLDivElement>(null)
@@ -116,7 +116,7 @@ export function CompanionPanel({open, path, task, stageId, close, unlink, refres
       {action.status === 'failed' && <p className="buddy-action-error">{action.error}</p>}{action.status === 'dismissed' && <small>已保留原状态</small>}{action.status === 'undone' && <small>这次更新已撤销</small>}
     </div>
   }
-  return <dialog id="global-companion-panel" className="companion-dialog" ref={dialog} aria-label="随航伙伴" onCancel={close} onClick={e => {if (e.target === e.currentTarget) close()}}>
+  return <dialog id="global-companion-panel" className={'companion-dialog'+(journey?' journey-communication':'')} ref={dialog} aria-label="随航伙伴" onCancel={close} onClick={e => {if (e.target === e.currentTarget) close()}}>
     <header className="buddy-header"><img className="buddy-mascot-avatar" src="/mascot/nailoong-astronaut.png" alt="奶龙随航伙伴"/><div><h2>随航伙伴 <small>AI</small></h2><p>一起把下一步，变得轻一点。</p></div><div className="buddy-header-actions"><ThemeToggle/><button className="buddy-close" autoFocus aria-label="关闭随航伙伴" onClick={close}><X size={21}/></button></div></header>
     <nav className="buddy-tabs" aria-label="伙伴功能">{([['chat','一起聊聊',MessageCircle],['memories','个人记忆',HeartHandshake],['trace','运行轨迹',Radio]] as const).map(([value,label,Icon]) => <button key={value} aria-pressed={view === value} className={view === value ? 'active' : ''} onClick={() => setView(value)}><Icon size={14}/>{label}{value === 'memories' && !!data?.memories.length && <small>{data.memories.length}</small>}</button>)}<span>{connected ? '已连接' : '正在重连'}</span></nav>
     {(error || query.error) && <div className="buddy-error" role="alert">{error || query.error?.message}<button onClick={() => {setError(''); void query.refetch()}}>刷新</button></div>}
